@@ -21,7 +21,15 @@ export function AuthScreen() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">
+    <div
+      className="min-h-[100dvh] bg-slate-900 flex items-center justify-center p-4"
+      style={{
+        paddingTop: 'calc(1rem + env(safe-area-inset-top))',
+        paddingRight: 'calc(1rem + env(safe-area-inset-right))',
+        paddingBottom: 'calc(1rem + env(safe-area-inset-bottom))',
+        paddingLeft: 'calc(1rem + env(safe-area-inset-left))',
+      }}
+    >
       <div className="w-full max-w-sm">
         {/* Brand */}
         <div className="text-center mb-8">
@@ -29,7 +37,7 @@ export function AuthScreen() {
             <Zap className="w-7 h-7 text-white" />
           </div>
           <h1 className="text-2xl font-bold text-white">BD Pulse</h1>
-          <p className="text-slate-400 text-sm mt-1">Weekly actions. KPI clarity. Executive visibility.</p>
+          <p className="text-slate-400 text-sm mt-1">Business Development Command Center</p>
         </div>
 
         {/* Form */}
@@ -61,8 +69,9 @@ export function AuthScreen() {
                 />
                 <button
                   type="button"
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                  className="absolute right-1 top-1/2 flex min-h-11 min-w-11 -translate-y-1/2 items-center justify-center text-slate-400 hover:text-slate-600"
                   onClick={() => setShowPassword(!showPassword)}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
@@ -84,32 +93,10 @@ export function AuthScreen() {
               {loading ? 'Signing in…' : 'Sign In'}
             </button>
           </form>
-
-          {/* Demo accounts */}
-          <div className="mt-5 pt-5 border-t border-slate-100">
-            <p className="text-xs text-slate-400 text-center mb-3">Demo accounts</p>
-            <div className="space-y-2">
-              {[
-                { label: 'Manager — Medlej', email: 'medlej@bahri-bd.demo', password: 'BDPulse2025!' },
-                { label: 'Employee — Reem', email: 'reem@bahri-bd.demo', password: 'BDPulse2025!' },
-                { label: 'Director',         email: 'director@bahri-bd.demo', password: 'BDPulse2025!' },
-              ].map((acc) => (
-                <button
-                  key={acc.email}
-                  type="button"
-                  onClick={() => { setEmail(acc.email); setPassword(acc.password); }}
-                  className="w-full text-left px-3 py-2 rounded-xl border border-slate-100 hover:bg-slate-50 transition-colors"
-                >
-                  <div className="text-xs font-medium text-slate-700">{acc.label}</div>
-                  <div className="text-[10px] text-slate-400">{acc.email}</div>
-                </button>
-              ))}
-            </div>
-          </div>
         </div>
 
         <p className="text-center text-slate-600 text-xs mt-4">
-          Bahri Logistics · Business Development · Internal Tool
+          Bahri Logistics &middot; Business Development &middot; Internal Tool
         </p>
       </div>
     </div>

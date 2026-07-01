@@ -16,7 +16,7 @@ export function calculateKpiScore(
     case 'action_completion': {
       if (linkedActions.length === 0) return kpi.current_score;
       const total = linkedActions.reduce((sum, a) => sum + a.progress, 0);
-      let score = total / linkedActions.length;
+      const score = total / linkedActions.length;
       const overdue = linkedActions.filter(
         (a) => a.due_date && new Date(a.due_date) < new Date() && a.status !== 'Completed'
       ).length;

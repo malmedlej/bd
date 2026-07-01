@@ -170,7 +170,7 @@ export function ActionCard({ action, onUpdate, onComplete, onClick, showOwner = 
             {onUpdate && (
               <button
                 onClick={() => onUpdate(action)}
-                className="flex-1 flex items-center justify-center gap-1.5 py-2.5 px-3 bg-teal-600 text-white rounded-xl text-xs font-bold hover:bg-teal-700 transition-colors active:scale-[0.97]"
+                className="flex-1 min-h-11 flex items-center justify-center gap-1.5 py-2.5 px-3 bg-teal-600 text-white rounded-xl text-xs font-bold hover:bg-teal-700 transition-colors active:scale-[0.97]"
               >
                 <Edit3 className="w-3.5 h-3.5" />
                 Update
@@ -179,7 +179,7 @@ export function ActionCard({ action, onUpdate, onComplete, onClick, showOwner = 
             {onComplete && (
               <button
                 onClick={() => onComplete(action)}
-                className="flex items-center justify-center gap-1.5 py-2.5 px-3 bg-emerald-50 text-emerald-700 rounded-xl text-xs font-bold hover:bg-emerald-100 transition-colors active:scale-[0.97]"
+                className="min-h-11 flex items-center justify-center gap-1.5 py-2.5 px-3 bg-emerald-50 text-emerald-700 rounded-xl text-xs font-bold hover:bg-emerald-100 transition-colors active:scale-[0.97]"
               >
                 <CheckCircle className="w-3.5 h-3.5" />
                 Done

@@ -24,7 +24,7 @@ function timeAgo(dateStr: string): string {
 }
 
 export function AlertsScreen() {
-  const { alerts, markRead, markAllRead } = useAlerts();
+  const { alerts, error, markRead, markAllRead } = useAlerts();
   const unread = alerts.filter(a => !a.is_read);
 
   return (
@@ -46,6 +46,12 @@ export function AlertsScreen() {
           </button>
         )}
       </div>
+
+      {error && (
+        <div className="rounded-xl border border-red-100 bg-red-50 px-3 py-2 text-xs text-red-700">
+          {error}
+        </div>
+      )}
 
       {alerts.length === 0 ? (
         <EmptyState

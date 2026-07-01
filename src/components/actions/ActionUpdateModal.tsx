@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { WeeklyAction, ActionStatus } from '../../types';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../hooks/useAuth';
+import { useBodyScrollLock } from '../../hooks/useBodyScrollLock';
 import { saveDraft, getDraft, clearDraft } from '../../lib/draftStorage';
 import { X, AlertTriangle, ExternalLink, ChevronDown, ChevronUp, CheckCircle2 } from 'lucide-react';
 
@@ -34,6 +35,8 @@ const STATUS_CURRENT_STYLE: Record<ActionStatus, string> = {
 const PROGRESS_STEPS: ProgressStep[] = [0, 25, 50, 75, 100];
 
 export function ActionUpdateModal({ action, onClose, onSaved }: ActionUpdateModalProps) {
+  useBodyScrollLock();
+
   const { profile } = useAuth();
   const draft = getDraft('action-update', action.id);
 
@@ -92,7 +95,7 @@ export function ActionUpdateModal({ action, onClose, onSaved }: ActionUpdateModa
     setError('');
     try {
       const now = new Date().toISOString();
-      await supabase.from('weekly_actions').update({
+      const { error: actionError } = await supabase.from('weekly_actions').update({
         status,
         progress,
         employee_update:      updateText   || null,
@@ -104,8 +107,9 @@ export function ActionUpdateModal({ action, onClose, onSaved }: ActionUpdateModa
         ...(newDueDate && { due_date: newDueDate }),
         ...(status === 'Completed' && { closure_date: now.split('T')[0] }),
       }).eq('id', action.id);
+      if (actionError) throw actionError;
 
-      await supabase.from('action_updates').insert({
+      const { error: historyError } = await supabase.from('action_updates').insert({
         action_id:            action.id,
         updated_by:           profile?.id,
         status,
@@ -117,8 +121,9 @@ export function ActionUpdateModal({ action, onClose, onSaved }: ActionUpdateModa
         evidence_link:        evidenceLink || null,
         new_due_date:         newDueDate   || null,
       });
+      if (historyError) throw historyError;
 
-      await supabase.from('audit_log').insert({
+      const { error: auditError } = await supabase.from('audit_log').insert({
         entity_type: 'weekly_action',
         entity_id:   action.id,
         changed_by:  profile?.id,
@@ -128,6 +133,7 @@ export function ActionUpdateModal({ action, onClose, onSaved }: ActionUpdateModa
         new_value:   status,
         description: `${profile?.full_name} updated "${action.task_title}" → ${status} (${progress}%)`,
       });
+      if (auditError) throw auditError;
 
       clearDraft('action-update', action.id);
 
@@ -154,7 +160,7 @@ export function ActionUpdateModal({ action, onClose, onSaved }: ActionUpdateModa
   // Toast overlay — shown after successful save
   if (toast) {
     return (
-      <div className="fixed inset-0 z-50 flex items-end lg:items-center justify-center pointer-events-none">
+      <div className="fixed inset-0 z-50 flex items-end justify-center pointer-events-none lg:items-center">
         <div className="absolute inset-0 bg-black/40" />
         <div className="relative mb-8 lg:mb-0 mx-4 bg-slate-900 text-white rounded-2xl px-5 py-4 flex items-center gap-3 shadow-2xl scale-in">
           <div className="w-8 h-8 bg-emerald-500 rounded-xl flex items-center justify-center flex-shrink-0">
@@ -167,10 +173,10 @@ export function ActionUpdateModal({ action, onClose, onSaved }: ActionUpdateModa
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end lg:items-center justify-center">
+    <div className="fixed inset-0 z-50 flex items-end justify-center overflow-hidden lg:items-center">
       <div className="absolute inset-0 bg-black/60 fade-in" onClick={onClose} />
 
-      <div className="relative bg-white w-full lg:max-w-md lg:rounded-2xl rounded-t-3xl slide-up max-h-[96vh] flex flex-col">
+      <div className="modal-sheet relative bg-white w-full lg:max-w-md lg:rounded-2xl rounded-t-3xl slide-up flex flex-col">
         {/* Handle bar */}
         <div className="flex justify-center pt-2.5 pb-1 lg:hidden flex-shrink-0">
           <div className="w-10 h-1 bg-slate-200 rounded-full" />
@@ -192,7 +198,7 @@ export function ActionUpdateModal({ action, onClose, onSaved }: ActionUpdateModa
               </span>
             </div>
           </div>
-          <button onClick={onClose} className="p-1.5 rounded-xl hover:bg-slate-100 text-slate-400 flex-shrink-0">
+          <button onClick={onClose} className="min-h-11 min-w-11 p-2 rounded-xl hover:bg-slate-100 text-slate-400 flex-shrink-0">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -208,13 +214,13 @@ export function ActionUpdateModal({ action, onClose, onSaved }: ActionUpdateModa
         {confirmComplete && (
           <div className="mx-4 mt-3 bg-emerald-50 border border-emerald-200 rounded-xl px-3 py-2.5 flex items-center gap-3 flex-shrink-0">
             <div className="text-sm text-emerald-800 flex-1">Mark as <strong>Completed</strong>?</div>
-            <button onClick={() => { handleStatusClick('Completed'); }} className="text-xs font-bold text-emerald-700 bg-emerald-100 px-3 py-1.5 rounded-lg">Yes</button>
-            <button onClick={() => setConfirmComplete(false)} className="text-xs text-emerald-600">No</button>
+            <button onClick={() => { handleStatusClick('Completed'); }} className="min-h-11 text-xs font-bold text-emerald-700 bg-emerald-100 px-3 py-1.5 rounded-lg">Yes</button>
+            <button onClick={() => setConfirmComplete(false)} className="min-h-11 px-3 text-xs text-emerald-600">No</button>
           </div>
         )}
 
         {/* Scrollable content */}
-        <div className="flex-1 overflow-y-auto px-4 py-4 space-y-5">
+        <div className="modal-scroll flex-1 overflow-y-auto px-4 py-4 space-y-5">
 
           {/* STATUS — big tappable buttons */}
           <div>

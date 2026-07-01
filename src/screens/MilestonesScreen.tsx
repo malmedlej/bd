@@ -17,13 +17,21 @@ export function MilestonesScreen() {
   const [milestones, setMilestones] = useState<Milestone[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterKpi, setFilterKpi] = useState('');
+  const [error, setError] = useState('');
 
   const fetchMilestones = async () => {
     setLoading(true);
-    const { data } = await supabase
+    setError('');
+    const { data, error: err } = await supabase
       .from('milestones')
       .select('*, kpi:kpis(id, kpi_name, color), owner:profiles!milestones_owner_id_fkey(id, full_name)')
       .order('due_date', { ascending: true, nullsFirst: false });
+    if (err) {
+      setError(err.message);
+      setMilestones([]);
+      setLoading(false);
+      return;
+    }
     setMilestones((data ?? []) as Milestone[]);
     setLoading(false);
   };
@@ -50,6 +58,12 @@ export function MilestonesScreen() {
           </button>
         )}
       </div>
+
+      {error && (
+        <div className="rounded-xl border border-red-100 bg-red-50 px-3 py-2 text-xs text-red-700">
+          {error}
+        </div>
+      )}
 
       {/* Filter by KPI */}
       {kpis.length > 0 && (

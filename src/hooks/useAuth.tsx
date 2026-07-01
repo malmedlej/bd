@@ -22,12 +22,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   const fetchProfile = useCallback(async (userId: string) => {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('profiles')
       .select('*')
       .eq('id', userId)
       .maybeSingle();
-    if (data) setProfile(data as Profile);
+
+    if (error || !data) {
+      setProfile(null);
+      return null;
+    }
+
+    const nextProfile = data as Profile;
+    setProfile(nextProfile);
+    return nextProfile;
   }, []);
 
   const refreshProfile = useCallback(async () => {

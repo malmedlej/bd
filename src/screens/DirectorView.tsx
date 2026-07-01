@@ -9,8 +9,8 @@ import { LoadingState } from '../components/ui/LoadingState';
 import { calculateOverallScore, isOverdue } from '../lib/kpiCalculations';
 
 export function DirectorView() {
-  const { actions, loading: actionsLoading } = useActions({ all: true });
-  const { kpis, loading: kpisLoading } = useKpis();
+  const { actions, loading: actionsLoading, error: actionsError } = useActions({ all: true });
+  const { kpis, loading: kpisLoading, error: kpisError } = useKpis();
   const [copied, setCopied] = useState(false);
 
   const loading = actionsLoading || kpisLoading;
@@ -90,6 +90,12 @@ export function DirectorView() {
 
   return (
     <div className="px-4 py-5 max-w-3xl mx-auto space-y-6 fade-in">
+      {(actionsError || kpisError) && (
+        <div className="rounded-xl border border-red-100 bg-red-50 px-3 py-2 text-xs text-red-700">
+          {actionsError || kpisError}
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>

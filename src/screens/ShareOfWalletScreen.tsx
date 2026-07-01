@@ -26,13 +26,21 @@ export function ShareOfWalletScreen() {
   const isManager = profile?.role === 'admin' || profile?.role === 'manager';
   const [items, setItems] = useState<ShareOfWallet[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     (async () => {
-      const { data } = await supabase
+      setError('');
+      const { data, error: err } = await supabase
         .from('share_of_wallet')
         .select('*, owner:profiles!share_of_wallet_owner_id_fkey(id, full_name)')
         .order('spend_2026_ytd', { ascending: false });
+      if (err) {
+        setError(err.message);
+        setItems([]);
+        setLoading(false);
+        return;
+      }
       setItems((data ?? []) as ShareOfWallet[]);
       setLoading(false);
     })();
@@ -62,6 +70,12 @@ export function ShareOfWalletScreen() {
           </button>
         )}
       </div>
+
+      {error && (
+        <div className="rounded-xl border border-red-100 bg-red-50 px-3 py-2 text-xs text-red-700">
+          {error}
+        </div>
+      )}
 
       {/* Summary card */}
       {items.length > 0 && (

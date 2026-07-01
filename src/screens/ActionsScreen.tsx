@@ -7,7 +7,7 @@ import { useAuth } from '../hooks/useAuth';
 import { useActions } from '../hooks/useActions';
 import { useKpis } from '../hooks/useKpis';
 import { ActionCard } from '../components/actions/ActionCard';
-import { LoadingState, SkeletonCard } from '../components/ui/LoadingState';
+import { SkeletonCard } from '../components/ui/LoadingState';
 import { EmptyState } from '../components/ui/EmptyState';
 import { AddActionModal } from '../components/actions/AddActionModal';
 import { isOverdue, isDueSoon, hasNoRecentUpdate } from '../lib/kpiCalculations';
@@ -24,22 +24,29 @@ interface ActionsScreenProps {
 export function ActionsScreen({ onUpdateAction, onDetailAction }: ActionsScreenProps) {
   const { profile } = useAuth();
   const isManager = profile?.role === 'admin' || profile?.role === 'manager';
-  const { actions, loading, refetch } = useActions({ all: isManager });
+  const { actions, loading, error: loadError, refetch } = useActions({ all: isManager });
   const { kpis } = useKpis();
 
   const [filter, setFilter] = useState<FilterTab>('all');
   const [search, setSearch] = useState('');
   const [showAdd, setShowAdd] = useState(false);
   const [profiles, setProfiles] = useState<import('../types').Profile[]>([]);
+  const [actionError, setActionError] = useState('');
 
   const loadProfiles = async () => {
-    const { data } = await supabase.from('profiles').select('*').eq('is_active', true);
+    setActionError('');
+    const { data, error } = await supabase.from('profiles').select('*').eq('is_active', true);
+    if (error) {
+      setActionError(error.message);
+      return false;
+    }
     setProfiles((data ?? []) as import('../types').Profile[]);
+    return true;
   };
 
-  const handleAddClick = () => {
-    loadProfiles();
-    setShowAdd(true);
+  const handleAddClick = async () => {
+    const loaded = await loadProfiles();
+    if (loaded) setShowAdd(true);
   };
 
   const filteredActions = useMemo(() => {
@@ -92,12 +99,17 @@ export function ActionsScreen({ onUpdateAction, onDetailAction }: ActionsScreenP
   ];
 
   const handleComplete = async (action: WeeklyAction) => {
-    await supabase.from('weekly_actions').update({
+    setActionError('');
+    const { error } = await supabase.from('weekly_actions').update({
       status: 'Completed',
       progress: 100,
       closure_date: new Date().toISOString().split('T')[0],
       last_updated: new Date().toISOString(),
     }).eq('id', action.id);
+    if (error) {
+      setActionError(error.message);
+      return;
+    }
     refetch();
   };
 
@@ -126,7 +138,7 @@ export function ActionsScreen({ onUpdateAction, onDetailAction }: ActionsScreenP
             <button
               key={id}
               onClick={() => setFilter(id)}
-              className={`flex-shrink-0 flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all
+              className={`flex-shrink-0 min-h-11 flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all
                 ${filter === id
                   ? 'bg-teal-600 text-white'
                   : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
@@ -141,6 +153,12 @@ export function ActionsScreen({ onUpdateAction, onDetailAction }: ActionsScreenP
             </button>
           ))}
         </div>
+
+        {(loadError || actionError) && (
+          <div className="mt-3 rounded-xl border border-red-100 bg-red-50 px-3 py-2 text-xs text-red-700">
+            {loadError || actionError}
+          </div>
+        )}
       </div>
 
       {/* List */}
@@ -181,7 +199,7 @@ export function ActionsScreen({ onUpdateAction, onDetailAction }: ActionsScreenP
       {isManager && (
         <button
           onClick={handleAddClick}
-          className="fixed bottom-24 right-4 lg:bottom-6 lg:right-6 w-12 h-12 bg-teal-600 text-white rounded-2xl shadow-lg flex items-center justify-center hover:bg-teal-700 transition-colors active:scale-95 z-30"
+          className="fixed bottom-[calc(6.75rem+env(safe-area-inset-bottom))] right-4 lg:bottom-6 lg:right-6 w-12 h-12 bg-teal-600 text-white rounded-2xl shadow-lg flex items-center justify-center hover:bg-teal-700 transition-colors active:scale-95 z-30"
         >
           <Plus className="w-5 h-5" />
         </button>

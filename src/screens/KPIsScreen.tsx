@@ -11,8 +11,8 @@ import { useAuth } from '../hooks/useAuth';
 
 export function KPIsScreen() {
   const { profile } = useAuth();
-  const { kpis, loading } = useKpis();
-  const { actions } = useActions({ all: true });
+  const { kpis, loading, error } = useKpis();
+  const { actions, error: actionsError } = useActions({ all: true });
 
   const overallScore = useMemo(() => calculateOverallScore(kpis), [kpis]);
 
@@ -33,6 +33,12 @@ export function KPIsScreen() {
 
   return (
     <div className="px-4 py-5 space-y-5 max-w-2xl mx-auto lg:px-6 fade-in">
+      {(error || actionsError) && (
+        <div className="rounded-xl border border-red-100 bg-red-50 px-3 py-2 text-xs text-red-700">
+          {error || actionsError}
+        </div>
+      )}
+
       {/* Overall score header */}
       <div className="card p-5 bg-gradient-to-br from-slate-900 to-slate-800 text-white">
         <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Overall BD KPI Score</div>

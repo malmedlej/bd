@@ -90,7 +90,7 @@ function FocusCard({ action, onUpdate, onDetail }: FocusCardProps) {
           )}
           <button
             onClick={(e) => { e.stopPropagation(); onUpdate(action); }}
-            className="px-3 py-1.5 bg-teal-600 text-white text-xs font-bold rounded-xl hover:bg-teal-700 transition-colors active:scale-95"
+            className="min-h-11 px-3 py-1.5 bg-teal-600 text-white text-xs font-bold rounded-xl hover:bg-teal-700 transition-colors active:scale-95"
           >
             Update
           </button>
@@ -117,8 +117,8 @@ function FocusCard({ action, onUpdate, onDetail }: FocusCardProps) {
 
 export function HomeScreen({ onNavigate, onUpdateAction, onDetailAction }: HomeScreenProps) {
   const { profile } = useAuth();
-  const { actions, loading: actionsLoading } = useActions();
-  const { kpis, loading: kpisLoading } = useKpis();
+  const { actions, loading: actionsLoading, error: actionsError } = useActions();
+  const { kpis, loading: kpisLoading, error: kpisError } = useKpis();
 
   const stats = useMemo(() => {
     const open = actions.filter(a => a.status !== 'Completed' && a.status !== 'Cancelled');
@@ -234,6 +234,11 @@ export function HomeScreen({ onNavigate, onUpdateAction, onDetailAction }: HomeS
       </div>
 
       <div className="px-4 py-5 space-y-5 max-w-2xl mx-auto lg:px-6">
+        {(actionsError || kpisError) && (
+          <div className="rounded-xl border border-red-100 bg-red-50 px-3 py-2 text-xs text-red-700">
+            {actionsError || kpisError}
+          </div>
+        )}
 
         {/* Alert banner — urgent items */}
         {urgentCount > 0 && (

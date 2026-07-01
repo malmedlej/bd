@@ -12,7 +12,9 @@ export function saveDraft(type: string, id: string, data: Record<string, unknown
     const drafts = getDrafts();
     drafts[`${type}-${id}`] = { id, type, data, savedAt: new Date().toISOString() };
     localStorage.setItem(DRAFT_KEY, JSON.stringify(drafts));
-  } catch {}
+  } catch {
+    return;
+  }
 }
 
 export function getDraft(type: string, id: string): Draft | null {
@@ -29,7 +31,9 @@ export function clearDraft(type: string, id: string): void {
     const drafts = getDrafts();
     delete drafts[`${type}-${id}`];
     localStorage.setItem(DRAFT_KEY, JSON.stringify(drafts));
-  } catch {}
+  } catch {
+    return;
+  }
 }
 
 export function getDraftCount(): number {

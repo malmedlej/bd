@@ -19,6 +19,9 @@ export function useKpis() {
       ]);
 
       if (kpisRes.error) throw kpisRes.error;
+      if (actionsRes.error) throw actionsRes.error;
+      if (milestonesRes.error) throw milestonesRes.error;
+      if (sowRes.error) throw sowRes.error;
 
       const rawKpis = (kpisRes.data ?? []) as KPI[];
       const actions = (actionsRes.data ?? []) as WeeklyAction[];
@@ -31,6 +34,7 @@ export function useKpis() {
       });
 
       setKpis(enriched);
+      setError(null);
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'Failed to load KPIs');
     } finally {

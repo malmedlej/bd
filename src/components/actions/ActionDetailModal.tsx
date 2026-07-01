@@ -6,6 +6,7 @@ import {
 import { WeeklyAction, ActionUpdate, Profile } from '../../types';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../hooks/useAuth';
+import { useBodyScrollLock } from '../../hooks/useBodyScrollLock';
 
 interface ActionDetailModalProps {
   action: WeeklyAction;
@@ -34,6 +35,8 @@ function timeAgo(dateStr: string): string {
 }
 
 export function ActionDetailModal({ action, onClose, onUpdate }: ActionDetailModalProps) {
+  useBodyScrollLock();
+
   const { profile } = useAuth();
   const isManager = profile?.role === 'admin' || profile?.role === 'manager';
   const isDirector = profile?.role === 'director';
@@ -41,16 +44,24 @@ export function ActionDetailModal({ action, onClose, onUpdate }: ActionDetailMod
 
   const [updates, setUpdates] = useState<(ActionUpdate & { updater?: Profile })[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(true);
+  const [historyError, setHistoryError] = useState('');
   const [tab, setTab] = useState<'detail' | 'history'>('detail');
 
   useEffect(() => {
     const load = async () => {
-      const { data } = await supabase
+      setHistoryError('');
+      const { data, error } = await supabase
         .from('action_updates')
         .select('*, updater:profiles!action_updates_updated_by_fkey(id, full_name, role)')
         .eq('action_id', action.id)
         .order('created_at', { ascending: false })
         .limit(20);
+      if (error) {
+        setHistoryError(error.message);
+        setUpdates([]);
+        setLoadingHistory(false);
+        return;
+      }
       setUpdates((data ?? []) as (ActionUpdate & { updater?: Profile })[]);
       setLoadingHistory(false);
     };
@@ -62,10 +73,10 @@ export function ActionDetailModal({ action, onClose, onUpdate }: ActionDetailMod
   const isOverdue = action.due_date && !isCompleted && new Date(action.due_date) < new Date();
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end lg:items-center justify-center">
+    <div className="fixed inset-0 z-50 flex items-end justify-center overflow-hidden lg:items-center">
       <div className="absolute inset-0 bg-black/60 fade-in" onClick={onClose} />
 
-      <div className="relative bg-white w-full lg:max-w-lg lg:rounded-2xl rounded-t-3xl slide-up max-h-[92vh] flex flex-col">
+      <div className="modal-sheet relative bg-white w-full lg:max-w-lg lg:rounded-2xl rounded-t-3xl slide-up flex flex-col">
         {/* Handle */}
         <div className="flex justify-center pt-2.5 pb-1 lg:hidden flex-shrink-0">
           <div className="w-10 h-1 bg-slate-200 rounded-full" />
@@ -86,13 +97,13 @@ export function ActionDetailModal({ action, onClose, onUpdate }: ActionDetailMod
             {canUpdate && (
               <button
                 onClick={() => { onClose(); onUpdate(action); }}
-                className="flex items-center gap-1.5 text-xs font-bold text-teal-700 bg-teal-50 hover:bg-teal-100 px-3 py-2 rounded-xl transition-colors"
+                className="flex min-h-11 items-center gap-1.5 text-xs font-bold text-teal-700 bg-teal-50 hover:bg-teal-100 px-3 py-2 rounded-xl transition-colors"
               >
                 <Edit3 className="w-3.5 h-3.5" />
                 Update
               </button>
             )}
-            <button onClick={onClose} className="p-1.5 rounded-xl hover:bg-slate-100 text-slate-400">
+            <button onClick={onClose} className="min-h-11 min-w-11 p-2 rounded-xl hover:bg-slate-100 text-slate-400">
               <X className="w-5 h-5" />
             </button>
           </div>
@@ -104,7 +115,7 @@ export function ActionDetailModal({ action, onClose, onUpdate }: ActionDetailMod
             <button
               key={t}
               onClick={() => setTab(t)}
-              className={`flex-1 py-2.5 text-xs font-bold transition-colors capitalize
+              className={`flex-1 min-h-11 py-2.5 text-xs font-bold transition-colors capitalize
                 ${tab === t ? 'text-teal-600 border-b-2 border-teal-600' : 'text-slate-400 hover:text-slate-600'}`}
             >
               {t === 'history' ? (
@@ -118,7 +129,7 @@ export function ActionDetailModal({ action, onClose, onUpdate }: ActionDetailMod
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto">
+        <div className="modal-scroll flex-1 overflow-y-auto pb-[env(safe-area-inset-bottom)]">
           {tab === 'detail' && (
             <div className="px-5 py-4 space-y-5">
 
@@ -281,6 +292,10 @@ export function ActionDetailModal({ action, onClose, onUpdate }: ActionDetailMod
               {loadingHistory ? (
                 <div className="flex justify-center py-8">
                   <div className="w-6 h-6 border-2 border-slate-200 border-t-teal-500 rounded-full animate-spin" />
+                </div>
+              ) : historyError ? (
+                <div className="bg-red-50 border border-red-100 rounded-xl px-3 py-2 text-xs text-red-700">
+                  {historyError}
                 </div>
               ) : updates.length === 0 ? (
                 <div className="text-center py-10">

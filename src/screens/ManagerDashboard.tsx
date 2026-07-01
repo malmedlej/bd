@@ -13,6 +13,7 @@ import { calculateOverallScore, isOverdue, hasNoRecentUpdate } from '../lib/kpiC
 import { exportActionsToCsv } from '../lib/csvExport';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
+import { useBodyScrollLock } from '../hooks/useBodyScrollLock';
 
 interface ManagerDashboardProps {
   onUpdateAction: (action: WeeklyAction) => void;
@@ -23,25 +24,34 @@ function ManagerFeedbackModal({ action, onClose, onSaved }: {
   onClose: () => void;
   onSaved: () => void;
 }) {
+  useBodyScrollLock();
+
   const { profile } = useAuth();
   const [feedback, setFeedback] = useState(action.manager_feedback ?? '');
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
 
   const handleSave = async () => {
     setSaving(true);
-    await supabase.from('weekly_actions').update({
-      manager_feedback: feedback,
-      manager_feedback_at: new Date().toISOString(),
-      manager_feedback_by: profile?.id,
-    }).eq('id', action.id);
-    setSaving(false);
-    onSaved();
+    setError('');
+    try {
+      const { error: err } = await supabase.from('weekly_actions').update({
+        manager_feedback: feedback,
+        manager_feedback_at: new Date().toISOString(),
+        manager_feedback_by: profile?.id,
+      }).eq('id', action.id);
+      if (err) throw err;
+      onSaved();
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'Failed to send feedback');
+      setSaving(false);
+    }
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end lg:items-center justify-center">
+    <div className="fixed inset-0 z-50 flex items-end justify-center overflow-hidden lg:items-center">
       <div className="absolute inset-0 bg-black/60 fade-in" onClick={onClose} />
-      <div className="relative bg-white w-full lg:max-w-md lg:rounded-2xl rounded-t-3xl slide-up">
+      <div className="modal-sheet relative bg-white w-full lg:max-w-md lg:rounded-2xl rounded-t-3xl slide-up overflow-hidden flex flex-col">
         <div className="flex justify-center pt-2.5 pb-1 lg:hidden">
           <div className="w-10 h-1 bg-slate-200 rounded-full" />
         </div>
@@ -50,11 +60,11 @@ function ManagerFeedbackModal({ action, onClose, onSaved }: {
             <div className="font-bold text-slate-900">Manager Feedback</div>
             <div className="text-xs text-slate-500 mt-0.5 line-clamp-1">{action.task_title}</div>
           </div>
-          <button onClick={onClose} className="p-1.5 rounded-xl hover:bg-slate-100 text-slate-400">
+          <button onClick={onClose} className="min-h-11 min-w-11 p-2 rounded-xl hover:bg-slate-100 text-slate-400">
             <X className="w-5 h-5" />
           </button>
         </div>
-        <div className="px-5 py-4">
+        <div className="modal-scroll overflow-y-auto px-5 py-4">
           <label className="label">Feedback / Instructions</label>
           <textarea
             className="input resize-none"
@@ -64,6 +74,11 @@ function ManagerFeedbackModal({ action, onClose, onSaved }: {
             placeholder="Add guidance, priority change, or next steps…"
             autoFocus
           />
+          {error && (
+            <div className="mt-3 bg-red-50 border border-red-100 rounded-xl px-3 py-2 text-xs text-red-700">
+              {error}
+            </div>
+          )}
         </div>
         <div className="px-5 pb-5 flex gap-3" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 1.25rem)' }}>
           <button onClick={onClose} className="btn-secondary">Cancel</button>
@@ -132,8 +147,8 @@ function KpiHealthRow({ kpi, overdueCount }: { kpi: { id: string; kpi_name: stri
 }
 
 export function ManagerDashboard({ onUpdateAction }: ManagerDashboardProps) {
-  const { actions, loading: actionsLoading, refetch } = useActions({ all: true });
-  const { kpis, loading: kpisLoading } = useKpis();
+  const { actions, loading: actionsLoading, error: actionsError, refetch } = useActions({ all: true });
+  const { kpis, loading: kpisLoading, error: kpisError } = useKpis();
   const [feedbackAction, setFeedbackAction] = useState<WeeklyAction | null>(null);
 
   const loading = actionsLoading || kpisLoading;
@@ -226,6 +241,11 @@ export function ManagerDashboard({ onUpdateAction }: ManagerDashboardProps) {
       </div>
 
       <div className="px-4 py-5 space-y-6 max-w-2xl mx-auto lg:px-6">
+        {(actionsError || kpisError) && (
+          <div className="rounded-xl border border-red-100 bg-red-50 px-3 py-2 text-xs text-red-700">
+            {actionsError || kpisError}
+          </div>
+        )}
 
         {/* ── Urgent alerts strip ─────────────────── */}
         {urgentCount > 0 && (
@@ -302,7 +322,7 @@ export function ManagerDashboard({ onUpdateAction }: ManagerDashboardProps) {
                     </div>
                     <button
                       onClick={() => setFeedbackAction(a)}
-                      className="flex items-center gap-1.5 text-xs font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 px-3 py-2 rounded-xl transition-colors flex-shrink-0"
+                      className="flex min-h-11 items-center gap-1.5 text-xs font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 px-3 py-2 rounded-xl transition-colors flex-shrink-0"
                     >
                       <Edit3 className="w-3.5 h-3.5" />
                       Respond
@@ -371,7 +391,7 @@ export function ManagerDashboard({ onUpdateAction }: ManagerDashboardProps) {
                   </div>
                   <button
                     onClick={() => setFeedbackAction(a)}
-                    className="text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 px-3 py-2 rounded-xl transition-colors flex-shrink-0"
+                    className="min-h-11 text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 px-3 py-2 rounded-xl transition-colors flex-shrink-0"
                   >
                     Nudge
                   </button>

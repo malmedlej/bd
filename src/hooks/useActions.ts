@@ -31,6 +31,7 @@ export function useActions(filter?: { ownerId?: string; all?: boolean }) {
       const { data, error: err } = await query;
       if (err) throw err;
       setActions((data ?? []) as WeeklyAction[]);
+      setError(null);
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'Failed to load actions');
     } finally {

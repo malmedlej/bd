@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { WeeklyAction, ActionPriority, KPI, Profile } from '../../types';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../hooks/useAuth';
+import { useBodyScrollLock } from '../../hooks/useBodyScrollLock';
 import { X } from 'lucide-react';
 
 interface AddActionModalProps {
@@ -30,6 +31,8 @@ const TEMPLATES = [
 const PRIORITIES: ActionPriority[] = ['Low', 'Medium', 'High', 'Critical'];
 
 export function AddActionModal({ kpis, profiles, onClose, onSaved, initial }: AddActionModalProps) {
+  useBodyScrollLock();
+
   const { profile } = useAuth();
   const [title, setTitle] = useState(initial?.task_title ?? '');
   const [description, setDescription] = useState(initial?.description ?? '');
@@ -83,21 +86,21 @@ export function AddActionModal({ kpis, profiles, onClose, onSaved, initial }: Ad
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end lg:items-center justify-center">
+    <div className="fixed inset-0 z-50 flex items-end justify-center overflow-hidden lg:items-center">
       <div className="absolute inset-0 bg-black/50 fade-in" onClick={onClose} />
-      <div className="relative bg-white w-full lg:max-w-lg lg:rounded-2xl rounded-t-2xl slide-up max-h-[92vh] overflow-hidden flex flex-col">
+      <div className="modal-sheet relative bg-white w-full lg:max-w-lg lg:rounded-2xl rounded-t-2xl slide-up overflow-hidden flex flex-col">
         <div className="flex justify-center pt-3 pb-1 lg:hidden">
           <div className="w-10 h-1 bg-slate-200 rounded-full" />
         </div>
 
         <div className="px-5 py-3 border-b border-slate-100 flex items-center justify-between">
           <h2 className="font-bold text-slate-900 text-base">Add Action</h2>
-          <button onClick={onClose} className="p-2 rounded-xl hover:bg-slate-100 text-slate-400">
+          <button onClick={onClose} className="min-h-11 min-w-11 p-2 rounded-xl hover:bg-slate-100 text-slate-400">
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
+        <div className="modal-scroll flex-1 overflow-y-auto px-5 py-4 space-y-4">
           {/* Templates */}
           <div>
             <label className="label">Quick Templates</label>
@@ -106,7 +109,7 @@ export function AddActionModal({ kpis, profiles, onClose, onSaved, initial }: Ad
                 <button
                   key={t.label}
                   onClick={() => applyTemplate(t)}
-                  className="text-xs px-2.5 py-1 rounded-lg border border-slate-200 text-slate-600 hover:bg-teal-50 hover:border-teal-200 hover:text-teal-700 transition-colors"
+                  className="min-h-11 text-xs px-3 py-2 rounded-lg border border-slate-200 text-slate-600 hover:bg-teal-50 hover:border-teal-200 hover:text-teal-700 transition-colors"
                 >
                   {t.label}
                 </button>
@@ -156,7 +159,7 @@ export function AddActionModal({ kpis, profiles, onClose, onSaved, initial }: Ad
                 <button
                   key={p}
                   onClick={() => setPriority(p)}
-                  className={`flex-1 py-2 rounded-xl text-xs font-semibold border-2 transition-all
+                  className={`flex-1 min-h-11 py-2 rounded-xl text-xs font-semibold border-2 transition-all
                     ${priority === p ? 'border-teal-500 bg-teal-50 text-teal-700' : 'border-slate-100 text-slate-500'}`}
                 >
                   {p}

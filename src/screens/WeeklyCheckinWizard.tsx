@@ -3,7 +3,6 @@ import {
   CheckCircle, Clock, AlertTriangle, ArrowRight, ArrowLeft,
   Copy, Check, Calendar, Send
 } from 'lucide-react';
-import { WeeklyAction } from '../types';
 import { useAuth } from '../hooks/useAuth';
 import { useActions } from '../hooks/useActions';
 import { supabase } from '../lib/supabase';
@@ -42,6 +41,7 @@ export function WeeklyCheckinWizard({ onComplete }: { onComplete: () => void }) 
   const [saving, setSaving] = useState(false);
   const [copied, setCopied] = useState(false);
   const [generatedSummary, setGeneratedSummary] = useState('');
+  const [error, setError] = useState('');
 
   const openActions = useMemo(() =>
     actions.filter(a => a.status !== 'Completed' && a.status !== 'Cancelled'), [actions]);
@@ -122,11 +122,11 @@ export function WeeklyCheckinWizard({ onComplete }: { onComplete: () => void }) 
 
   const handleSubmit = async () => {
     setSaving(true);
+    setError('');
     const week = getWeekRange();
     const summary = generateSummary();
-    setGeneratedSummary(summary);
 
-    await supabase.from('weekly_checkins').insert({
+    const { error: submitError } = await supabase.from('weekly_checkins').insert({
       employee_id: profile?.id,
       week_start: week.start,
       week_end: week.end,
@@ -139,6 +139,12 @@ export function WeeklyCheckinWizard({ onComplete }: { onComplete: () => void }) 
     });
 
     setSaving(false);
+    if (submitError) {
+      setError(submitError.message);
+      return;
+    }
+
+    setGeneratedSummary(summary);
     setStep(5);
   };
 
@@ -355,6 +361,12 @@ export function WeeklyCheckinWizard({ onComplete }: { onComplete: () => void }) 
       )}
 
       {/* Navigation */}
+      {error && (
+        <div className="rounded-xl border border-red-100 bg-red-50 px-3 py-2 text-xs text-red-700">
+          {error}
+        </div>
+      )}
+
       <div className="flex gap-3 pt-2">
         {step > 0 && (
           <button onClick={() => setStep(s => s - 1)} className="btn-secondary flex items-center gap-1.5">
