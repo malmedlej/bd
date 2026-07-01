@@ -79,7 +79,8 @@ export function AddActionModal({ kpis, profiles, onClose, onSaved, initial }: Ad
       if (err) throw err;
       onSaved();
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'Failed to create action');
+      console.error('Unable to create action', e);
+      setError('Unable to create action');
     } finally {
       setSaving(false);
     }

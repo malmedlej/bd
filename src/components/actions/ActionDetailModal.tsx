@@ -57,7 +57,8 @@ export function ActionDetailModal({ action, onClose, onUpdate }: ActionDetailMod
         .order('created_at', { ascending: false })
         .limit(20);
       if (error) {
-        setHistoryError(error.message);
+        console.error('Unable to load action history', error);
+        setHistoryError('Unable to load action history');
         setUpdates([]);
         setLoadingHistory(false);
         return;

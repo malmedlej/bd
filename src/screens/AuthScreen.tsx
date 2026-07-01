@@ -51,7 +51,7 @@ export function AuthScreen() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@bahri.com"
+                placeholder="you@company.com"
                 autoComplete="email"
                 autoCapitalize="none"
               />
@@ -96,7 +96,7 @@ export function AuthScreen() {
         </div>
 
         <p className="text-center text-slate-600 text-xs mt-4">
-          Bahri Logistics &middot; Business Development &middot; Internal Tool
+          Internal Business Development Tool
         </p>
       </div>
     </div>

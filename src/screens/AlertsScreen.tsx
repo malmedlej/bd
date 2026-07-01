@@ -28,7 +28,7 @@ export function AlertsScreen() {
   const unread = alerts.filter(a => !a.is_read);
 
   return (
-    <div className="px-4 py-5 max-w-2xl mx-auto space-y-4 fade-in">
+    <div className="mx-auto max-w-5xl px-4 py-5 space-y-4 lg:px-6 fade-in">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="font-bold text-slate-900 text-lg">Alerts</h1>

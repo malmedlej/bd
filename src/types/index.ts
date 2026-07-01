@@ -224,4 +224,5 @@ export type Screen =
   | 'review'
   | 'activity'
   | 'alerts'
-  | 'audit';
+  | 'audit'
+  | 'admin';

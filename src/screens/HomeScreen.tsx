@@ -162,7 +162,7 @@ export function HomeScreen({ onNavigate, onUpdateAction, onDetailAction }: HomeS
     <div className="fade-in">
       {/* Hero header strip */}
       <div className="bg-slate-900 px-4 pt-5 pb-6 lg:px-6">
-        <div className="max-w-2xl mx-auto">
+        <div className="mx-auto max-w-7xl">
           <div className="flex items-start justify-between mb-4">
             <div>
               <div className="flex items-center gap-2 mb-1.5">
@@ -233,7 +233,7 @@ export function HomeScreen({ onNavigate, onUpdateAction, onDetailAction }: HomeS
         </div>
       </div>
 
-      <div className="px-4 py-5 space-y-5 max-w-2xl mx-auto lg:px-6">
+      <div className="mx-auto max-w-7xl px-4 py-5 space-y-5 lg:px-6">
         {(actionsError || kpisError) && (
           <div className="rounded-xl border border-red-100 bg-red-50 px-3 py-2 text-xs text-red-700">
             {actionsError || kpisError}
@@ -283,7 +283,7 @@ export function HomeScreen({ onNavigate, onUpdateAction, onDetailAction }: HomeS
         )}
 
         {/* Primary actions */}
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
           <button
             onClick={() => onNavigate('checkin')}
             className="flex flex-col items-start gap-1 bg-teal-600 text-white p-4 rounded-2xl hover:bg-teal-700 transition-colors active:scale-[0.97]"
@@ -317,7 +317,7 @@ export function HomeScreen({ onNavigate, onUpdateAction, onDetailAction }: HomeS
                 All actions <ArrowRight className="w-3 h-3" />
               </button>
             </div>
-            <div className="space-y-2.5">
+            <div className="grid gap-3 lg:grid-cols-2 2xl:grid-cols-3">
               {focusActions.map(a => (
                 <FocusCard key={a.id} action={a} onUpdate={onUpdateAction} onDetail={onDetailAction} />
               ))}

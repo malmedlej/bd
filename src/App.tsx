@@ -11,6 +11,7 @@ import { WeeklyCheckinWizard } from './screens/WeeklyCheckinWizard';
 import { MilestonesScreen } from './screens/MilestonesScreen';
 import { ShareOfWalletScreen } from './screens/ShareOfWalletScreen';
 import { AlertsScreen } from './screens/AlertsScreen';
+import { AdminUsersScreen } from './screens/AdminUsersScreen';
 import { ActionUpdateModal } from './components/actions/ActionUpdateModal';
 import { ActionDetailModal } from './components/actions/ActionDetailModal';
 import { Screen, WeeklyAction } from './types';
@@ -28,6 +29,7 @@ const SCREEN_TITLES: Record<Screen, string> = {
   activity:   'Activity Plan',
   alerts:     'Alerts',
   audit:      'Audit Trail',
+  admin:      'User Management',
 };
 
 function AppContent() {
@@ -86,10 +88,12 @@ function AppContent() {
   }
 
   const isDirector = profile.role === 'director';
+  const isAdmin = profile.role === 'admin';
   const isManager = profile.role === 'admin' || profile.role === 'manager';
 
   const handleNavigate = (s: Screen) => {
     if (isDirector && s !== 'director' && s !== 'kpis' && s !== 'alerts') return;
+    if (s === 'admin' && !isAdmin) return;
     setScreen(s);
   };
 
@@ -129,6 +133,8 @@ function AppContent() {
         return <ShareOfWalletScreen key={refreshKey} />;
       case 'alerts':
         return <AlertsScreen key={refreshKey} />;
+      case 'admin':
+        return <AdminUsersScreen key={refreshKey} />;
       default:
         return (
           <div className="flex items-center justify-center min-h-64">

@@ -18,7 +18,8 @@ export function useAlerts() {
       .order('created_at', { ascending: false })
       .limit(50);
     if (err) {
-      setError(err.message);
+      console.error('Unable to load alerts', err);
+      setError('Unable to load alerts');
       return;
     }
     const items = (data ?? []) as Alert[];
@@ -32,7 +33,8 @@ export function useAlerts() {
   const markRead = async (id: string) => {
     const { error: err } = await supabase.from('alerts').update({ is_read: true }).eq('id', id);
     if (err) {
-      setError(err.message);
+      console.error('Unable to mark alert as read', err);
+      setError('Unable to update alerts');
       return;
     }
     setAlerts((prev) => prev.map((a) => a.id === id ? { ...a, is_read: true } : a));
@@ -43,7 +45,8 @@ export function useAlerts() {
     if (!user) return;
     const { error: err } = await supabase.from('alerts').update({ is_read: true }).eq('user_id', user.id);
     if (err) {
-      setError(err.message);
+      console.error('Unable to mark all alerts as read', err);
+      setError('Unable to update alerts');
       return;
     }
     setAlerts((prev) => prev.map((a) => ({ ...a, is_read: true })));

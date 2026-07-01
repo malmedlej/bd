@@ -1,7 +1,7 @@
 import {
   Home, CheckSquare, BarChart2, Users, LayoutDashboard,
   Bell, CalendarDays, TrendingUp, BookOpen, Activity,
-  LogOut, ChevronRight, Zap
+  LogOut, ChevronRight, Zap, Settings
 } from 'lucide-react';
 import { Screen } from '../../types';
 import { useAuth } from '../../hooks/useAuth';
@@ -31,6 +31,11 @@ const MANAGER_ITEMS = [
   { id: 'director' as Screen,   label: 'Director View',  icon: LayoutDashboard },
 ];
 
+const ADMIN_ITEMS = [
+  ...MANAGER_ITEMS,
+  { id: 'admin' as Screen, label: 'User Management', icon: Settings },
+];
+
 const DIRECTOR_ITEMS = [
   { id: 'director' as Screen, label: 'Executive View', icon: LayoutDashboard },
   { id: 'kpis' as Screen,     label: 'KPI Summary',    icon: BarChart2 },
@@ -44,7 +49,9 @@ export function Sidebar({ current, onChange }: SidebarProps) {
 
   const items = profile.role === 'director'
     ? DIRECTOR_ITEMS
-    : profile.role === 'admin' || profile.role === 'manager'
+    : profile.role === 'admin'
+    ? ADMIN_ITEMS
+    : profile.role === 'manager'
     ? MANAGER_ITEMS
     : EMPLOYEE_ITEMS;
 

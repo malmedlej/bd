@@ -1,7 +1,7 @@
 {
   "name": "BD Pulse - Business Development Command Center",
   "short_name": "BD Pulse",
-  "description": "Bahri Logistics Business Development internal tool.",
+  "description": "Internal Business Development Tool.",
   "id": "/bd/",
   "start_url": "/bd/",
   "scope": "/bd/",

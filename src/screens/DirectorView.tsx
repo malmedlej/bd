@@ -43,7 +43,7 @@ export function DirectorView() {
   const generateExecutiveSummary = (): string => {
     const lines = [
       `BD Pulse – Executive Summary`,
-      `Bahri Logistics Business Development`,
+      `Internal Business Development Tool`,
       `Generated: ${new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}`,
       '',
       `Overall BD KPI Score: ${stats.overallScore}%`,
@@ -89,7 +89,7 @@ export function DirectorView() {
   if (loading) return <LoadingState text="Loading executive view…" />;
 
   return (
-    <div className="px-4 py-5 max-w-3xl mx-auto space-y-6 fade-in">
+    <div className="mx-auto max-w-7xl px-4 py-5 space-y-6 lg:px-6 fade-in">
       {(actionsError || kpisError) && (
         <div className="rounded-xl border border-red-100 bg-red-50 px-3 py-2 text-xs text-red-700">
           {actionsError || kpisError}
@@ -101,7 +101,7 @@ export function DirectorView() {
         <div>
           <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-0.5">Read-only</div>
           <h1 className="text-xl font-bold text-slate-900">Executive BD View</h1>
-          <p className="text-slate-500 text-xs mt-0.5">Bahri Logistics · Business Development · {new Date().toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })}</p>
+          <p className="text-slate-500 text-xs mt-0.5">Business Development · {new Date().toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })}</p>
         </div>
         <button
           onClick={handleCopy}
@@ -175,7 +175,7 @@ export function DirectorView() {
       {/* KPI Cards */}
       <div>
         <div className="section-title mb-3">Strategic Progress</div>
-        <div className="space-y-3">
+        <div className="grid gap-3 lg:grid-cols-2 2xl:grid-cols-3">
           {kpis.map(kpi => (
             <KPIStatusCard key={kpi.id} kpi={kpi} />
           ))}

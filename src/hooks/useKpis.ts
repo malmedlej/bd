@@ -36,7 +36,8 @@ export function useKpis() {
       setKpis(enriched);
       setError(null);
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'Failed to load KPIs');
+      console.error('Unable to load KPIs', e);
+      setError('Unable to load KPIs');
     } finally {
       setLoading(false);
     }

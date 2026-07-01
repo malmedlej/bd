@@ -140,7 +140,8 @@ export function WeeklyCheckinWizard({ onComplete }: { onComplete: () => void }) 
 
     setSaving(false);
     if (submitError) {
-      setError(submitError.message);
+      console.error('Unable to submit weekly check-in', submitError);
+      setError('Unable to submit weekly check-in');
       return;
     }
 
@@ -161,7 +162,7 @@ export function WeeklyCheckinWizard({ onComplete }: { onComplete: () => void }) 
   // Final summary screen
   if (step === 5) {
     return (
-      <div className="px-4 py-5 max-w-2xl mx-auto space-y-5 fade-in">
+      <div className="mx-auto max-w-4xl px-4 py-5 space-y-5 lg:px-6 fade-in">
         <div className="text-center">
           <div className="w-14 h-14 bg-emerald-100 rounded-2xl flex items-center justify-center mx-auto mb-3">
             <CheckCircle className="w-7 h-7 text-emerald-500" />
@@ -198,7 +199,7 @@ export function WeeklyCheckinWizard({ onComplete }: { onComplete: () => void }) 
   const StepIcon = currentStep.icon;
 
   return (
-    <div className="px-4 py-5 max-w-2xl mx-auto space-y-5 fade-in">
+    <div className="mx-auto max-w-4xl px-4 py-5 space-y-5 lg:px-6 fade-in">
       {/* Header */}
       <div>
         <div className="flex items-center justify-between mb-3">

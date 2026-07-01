@@ -37,7 +37,8 @@ export function ActionsScreen({ onUpdateAction, onDetailAction }: ActionsScreenP
     setActionError('');
     const { data, error } = await supabase.from('profiles').select('*').eq('is_active', true);
     if (error) {
-      setActionError(error.message);
+      console.error('Unable to load profiles', error);
+      setActionError('Unable to load profiles');
       return false;
     }
     setProfiles((data ?? []) as import('../types').Profile[]);
@@ -107,7 +108,8 @@ export function ActionsScreen({ onUpdateAction, onDetailAction }: ActionsScreenP
       last_updated: new Date().toISOString(),
     }).eq('id', action.id);
     if (error) {
-      setActionError(error.message);
+      console.error('Unable to update action', error);
+      setActionError('Unable to update action');
       return;
     }
     refetch();
@@ -163,7 +165,7 @@ export function ActionsScreen({ onUpdateAction, onDetailAction }: ActionsScreenP
 
       {/* List */}
       <div className="flex-1 overflow-y-auto">
-        <div className="px-4 py-4 space-y-3 max-w-2xl mx-auto lg:px-6">
+        <div className="mx-auto max-w-7xl px-4 py-4 space-y-3 lg:px-6">
           {loading ? (
             <>
               <SkeletonCard />
@@ -180,16 +182,18 @@ export function ActionsScreen({ onUpdateAction, onDetailAction }: ActionsScreenP
           ) : (
             <>
               <div className="text-xs text-slate-400 pb-1">{filteredActions.length} action{filteredActions.length !== 1 ? 's' : ''}</div>
-              {filteredActions.map((a) => (
-                <ActionCard
-                  key={a.id}
-                  action={a}
-                  onUpdate={onUpdateAction}
-                  onComplete={handleComplete}
-                  onClick={onDetailAction}
-                  showOwner={isManager}
-                />
-              ))}
+              <div className="grid gap-3 lg:grid-cols-2 2xl:grid-cols-3">
+                {filteredActions.map((a) => (
+                  <ActionCard
+                    key={a.id}
+                    action={a}
+                    onUpdate={onUpdateAction}
+                    onComplete={handleComplete}
+                    onClick={onDetailAction}
+                    showOwner={isManager}
+                  />
+                ))}
+              </div>
             </>
           )}
         </div>

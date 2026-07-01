@@ -32,7 +32,7 @@ export function KPIsScreen() {
   if (loading) return <LoadingState text="Calculating KPI scores…" />;
 
   return (
-    <div className="px-4 py-5 space-y-5 max-w-2xl mx-auto lg:px-6 fade-in">
+    <div className="mx-auto max-w-7xl px-4 py-5 space-y-5 lg:px-6 fade-in">
       {(error || actionsError) && (
         <div className="rounded-xl border border-red-100 bg-red-50 px-3 py-2 text-xs text-red-700">
           {error || actionsError}
@@ -86,18 +86,20 @@ export function KPIsScreen() {
       ) : (
         <div className="space-y-3">
           <div className="section-title">KPI Performance</div>
-          {kpis.map((kpi) => {
-            const stats = getActionStats(kpi.id);
-            return (
-              <KPIStatusCard
-                key={kpi.id}
-                kpi={kpi}
-                linkedActionsCount={stats.linked}
-                completedActionsCount={stats.completed}
-                overdueCount={stats.overdue}
-              />
-            );
-          })}
+          <div className="grid gap-3 lg:grid-cols-2 2xl:grid-cols-3">
+            {kpis.map((kpi) => {
+              const stats = getActionStats(kpi.id);
+              return (
+                <KPIStatusCard
+                  key={kpi.id}
+                  kpi={kpi}
+                  linkedActionsCount={stats.linked}
+                  completedActionsCount={stats.completed}
+                  overdueCount={stats.overdue}
+                />
+              );
+            })}
+          </div>
         </div>
       )}
 

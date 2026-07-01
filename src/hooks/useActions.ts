@@ -33,7 +33,8 @@ export function useActions(filter?: { ownerId?: string; all?: boolean }) {
       setActions((data ?? []) as WeeklyAction[]);
       setError(null);
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'Failed to load actions');
+      console.error('Unable to load actions', e);
+      setError('Unable to load actions');
     } finally {
       setLoading(false);
     }

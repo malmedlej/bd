@@ -36,7 +36,8 @@ export function ShareOfWalletScreen() {
         .select('*, owner:profiles!share_of_wallet_owner_id_fkey(id, full_name)')
         .order('spend_2026_ytd', { ascending: false });
       if (err) {
-        setError(err.message);
+        console.error('Unable to load share of wallet', err);
+        setError('Unable to load share of wallet');
         setItems([]);
         setLoading(false);
         return;
@@ -57,7 +58,7 @@ export function ShareOfWalletScreen() {
   if (loading) return <LoadingState />;
 
   return (
-    <div className="px-4 py-5 max-w-2xl mx-auto space-y-4 fade-in">
+    <div className="mx-auto max-w-7xl px-4 py-5 space-y-4 lg:px-6 fade-in">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="font-bold text-slate-900 text-lg">Share of Wallet</h1>
@@ -103,7 +104,7 @@ export function ShareOfWalletScreen() {
       {items.length === 0 ? (
         <EmptyState icon={TrendingUp} title="No clients tracked" description="Share of Wallet data tracks growth per client." />
       ) : (
-        <div className="space-y-3">
+        <div className="grid gap-3 lg:grid-cols-2 2xl:grid-cols-3">
           {items.map(item => {
             const growth = item.spend_2026_ytd - item.spend_2025;
             const growthPct = item.spend_2025 > 0 ? (growth / item.spend_2025) * 100 : 0;

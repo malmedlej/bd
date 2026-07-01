@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Bell, LogOut, Zap } from 'lucide-react';
+import { Bell, LogOut, Settings, Zap } from 'lucide-react';
 import { Screen } from '../../types';
 import { useAuth } from '../../hooks/useAuth';
 import { useAlerts } from '../../hooks/useAlerts';
@@ -132,6 +132,20 @@ export function AppLayout({ children, current, onChange, title, subtitle, header
                       </div>
                     </div>
                     <div className="my-2 h-px bg-slate-100" />
+                    {profile.role === 'admin' && (
+                      <button
+                        type="button"
+                        role="menuitem"
+                        onClick={() => {
+                          setMenuOpen(false);
+                          onChange('admin');
+                        }}
+                        className="flex min-h-11 w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-200"
+                      >
+                        <Settings className="w-4 h-4" />
+                        Admin / User Management
+                      </button>
+                    )}
                     <button
                       type="button"
                       role="menuitem"

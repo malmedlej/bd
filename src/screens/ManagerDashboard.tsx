@@ -43,7 +43,8 @@ function ManagerFeedbackModal({ action, onClose, onSaved }: {
       if (err) throw err;
       onSaved();
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'Failed to send feedback');
+      console.error('Unable to send feedback', e);
+      setError('Unable to send feedback');
       setSaving(false);
     }
   };
@@ -191,7 +192,7 @@ export function ManagerDashboard({ onUpdateAction }: ManagerDashboardProps) {
 
       {/* ── Hero ──────────────────────────────────── */}
       <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 px-5 pt-6 pb-8">
-        <div className="max-w-2xl mx-auto">
+        <div className="mx-auto max-w-7xl">
           <div className="flex items-start justify-between mb-6">
             <div>
               <div className="text-[10px] font-bold text-teal-400 uppercase tracking-widest mb-1">BD Pulse</div>
@@ -240,7 +241,7 @@ export function ManagerDashboard({ onUpdateAction }: ManagerDashboardProps) {
         </div>
       </div>
 
-      <div className="px-4 py-5 space-y-6 max-w-2xl mx-auto lg:px-6">
+      <div className="mx-auto max-w-7xl px-4 py-5 space-y-6 lg:px-6">
         {(actionsError || kpisError) && (
           <div className="rounded-xl border border-red-100 bg-red-50 px-3 py-2 text-xs text-red-700">
             {actionsError || kpisError}
@@ -249,17 +250,19 @@ export function ManagerDashboard({ onUpdateAction }: ManagerDashboardProps) {
 
         {/* ── Urgent alerts strip ─────────────────── */}
         {urgentCount > 0 && (
-          <div className="space-y-2.5">
+          <div>
             <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Needs Attention</div>
-            {sections.overdue.length > 0 && (
-              <UrgentBanner count={sections.overdue.length} label="Overdue actions — past due date" color="red" />
-            )}
-            {sections.blocked.length > 0 && (
-              <UrgentBanner count={sections.blocked.length} label="Blocked — needs unblocking" color="amber" />
-            )}
-            {sections.support.length > 0 && (
-              <UrgentBanner count={sections.support.length} label="Team members need your support" color="blue" />
-            )}
+            <div className="mt-3 grid gap-3 lg:grid-cols-3">
+              {sections.overdue.length > 0 && (
+                <UrgentBanner count={sections.overdue.length} label="Overdue actions - past due date" color="red" />
+              )}
+              {sections.blocked.length > 0 && (
+                <UrgentBanner count={sections.blocked.length} label="Blocked - needs unblocking" color="amber" />
+              )}
+              {sections.support.length > 0 && (
+                <UrgentBanner count={sections.support.length} label="Team members need your support" color="blue" />
+              )}
+            </div>
           </div>
         )}
 
@@ -309,7 +312,7 @@ export function ManagerDashboard({ onUpdateAction }: ManagerDashboardProps) {
                 Manager Support Required ({sections.support.length})
               </div>
             </div>
-            <div className="space-y-2.5">
+            <div className="grid gap-3 lg:grid-cols-2">
               {sections.support.map(a => (
                 <div key={a.id} className="card border-l-4 border-l-blue-500 p-4">
                   <div className="flex items-start justify-between gap-2 mb-2">
@@ -348,7 +351,7 @@ export function ManagerDashboard({ onUpdateAction }: ManagerDashboardProps) {
                 Overdue ({sections.overdue.length})
               </div>
             </div>
-            <div className="space-y-3">
+            <div className="grid gap-3 lg:grid-cols-2">
               {sections.overdue.map(a => (
                 <ActionCard key={a.id} action={a} onUpdate={onUpdateAction} showOwner />
               ))}
@@ -365,7 +368,7 @@ export function ManagerDashboard({ onUpdateAction }: ManagerDashboardProps) {
                 Blocked ({sections.blocked.length})
               </div>
             </div>
-            <div className="space-y-3">
+            <div className="grid gap-3 lg:grid-cols-2">
               {sections.blocked.map(a => (
                 <ActionCard key={a.id} action={a} onUpdate={onUpdateAction} showOwner />
               ))}
@@ -382,7 +385,7 @@ export function ManagerDashboard({ onUpdateAction }: ManagerDashboardProps) {
                 No Update in 7+ Days ({sections.noUpdate.length})
               </div>
             </div>
-            <div className="space-y-2">
+            <div className="grid gap-3 lg:grid-cols-2">
               {sections.noUpdate.map(a => (
                 <div key={a.id} className="card p-3.5 flex items-center gap-3 border-l-4 border-l-slate-300">
                   <div className="flex-1 min-w-0">

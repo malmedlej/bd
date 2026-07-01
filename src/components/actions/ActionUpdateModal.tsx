@@ -147,7 +147,8 @@ export function ActionUpdateModal({ action, onClose, onSaved }: ActionUpdateModa
         onSaved();
       }, 1400);
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'Failed to save');
+      console.error('Unable to save action update', e);
+      setError('Unable to save action update');
       setSaving(false);
     }
   };

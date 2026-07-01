@@ -27,7 +27,8 @@ export function MilestonesScreen() {
       .select('*, kpi:kpis(id, kpi_name, color), owner:profiles!milestones_owner_id_fkey(id, full_name)')
       .order('due_date', { ascending: true, nullsFirst: false });
     if (err) {
-      setError(err.message);
+      console.error('Unable to load milestones', err);
+      setError('Unable to load milestones');
       setMilestones([]);
       setLoading(false);
       return;
@@ -45,7 +46,7 @@ export function MilestonesScreen() {
   if (loading) return <LoadingState />;
 
   return (
-    <div className="px-4 py-5 max-w-2xl mx-auto space-y-4 fade-in">
+    <div className="mx-auto max-w-7xl px-4 py-5 space-y-4 lg:px-6 fade-in">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="font-bold text-slate-900 text-lg">Milestones</h1>
@@ -85,7 +86,7 @@ export function MilestonesScreen() {
       {filtered.length === 0 ? (
         <EmptyState icon={BookOpen} title="No milestones" description="Milestones help track major project deliverables linked to KPIs." />
       ) : (
-        <div className="space-y-3">
+        <div className="grid gap-3 lg:grid-cols-2 2xl:grid-cols-3">
           {filtered.map(m => (
             <div key={m.id} className="card p-4">
               <div className="flex items-start justify-between gap-2 mb-2">
