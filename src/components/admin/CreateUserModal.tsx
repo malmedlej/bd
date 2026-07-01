@@ -15,6 +15,39 @@ function roleLabel(role: Role) {
   return role.charAt(0).toUpperCase() + role.slice(1);
 }
 
+const ERROR_MESSAGES: Record<string, string> = {
+  not_owner: 'Only owners can create users.',
+  not_authenticated: 'Your session has expired. Please sign in again.',
+  email_exists: 'A user with this email already exists.',
+  full_name_required: 'Full name is required.',
+  email_required: 'Email is required.',
+  password_invalid: 'Temporary password must be at least 8 characters.',
+  role_invalid: 'Role must be owner, manager, or member.',
+  server_misconfigured: 'Server is misconfigured. Contact an administrator.',
+  profile_upsert_failed: 'User was created but the profile could not be saved. Contact an administrator.',
+  invalid_json: 'Unable to create user (bad request).',
+  method_not_allowed: 'Unable to create user (bad request).',
+};
+
+// supabase-js wraps non-2xx Edge Function responses in a generic
+// FunctionsHttpError whose .message is just "Edge Function returned a
+// non-2xx status code" — the real { error: "..." } body only lives on
+// error.context (the raw Response), so it has to be parsed out manually.
+async function extractEdgeFunctionError(fnError: unknown): Promise<string> {
+  if (fnError && typeof fnError === 'object' && 'context' in fnError) {
+    const context = (fnError as { context?: unknown }).context;
+    if (context instanceof Response) {
+      try {
+        const body = await context.clone().json();
+        if (body && typeof body.error === 'string') return body.error;
+      } catch {
+        // Response body wasn't JSON — fall through to the generic message.
+      }
+    }
+  }
+  return fnError instanceof Error ? fnError.message : 'Unable to create user';
+}
+
 export function CreateUserModal({ onClose, onCreated }: CreateUserModalProps) {
   useBodyScrollLock();
 
@@ -54,20 +87,15 @@ export function CreateUserModal({ onClose, onCreated }: CreateUserModalProps) {
         },
       });
 
-      if (fnError) throw fnError;
+      if (fnError) throw new Error(await extractEdgeFunctionError(fnError));
       if (data?.error) throw new Error(data.error);
 
       onCreated();
       onClose();
     } catch (e: unknown) {
       console.error('Unable to create user', e);
-      const message = e instanceof Error ? e.message : 'Unable to create user';
-      setError(
-        message === 'not_owner' ? 'Only owners can create users.' :
-        message === 'not_authenticated' ? 'Your session has expired. Please sign in again.' :
-        message === 'email_exists' ? 'A user with this email already exists.' :
-        message
-      );
+      const code = e instanceof Error ? e.message : 'unable_to_create_user';
+      setError(ERROR_MESSAGES[code] ?? code);
     } finally {
       setSaving(false);
     }
