@@ -2,6 +2,7 @@
   "name": "BD Pulse – Business Development Command Center",
   "short_name": "BD Pulse",
   "description": "Weekly actions. KPI clarity. Executive visibility.",
+  "id": "/bd/",
   "start_url": "/bd/",
   "scope": "/bd/",
   "display": "standalone",
