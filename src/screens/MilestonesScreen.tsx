@@ -13,7 +13,7 @@ import { exportMilestonesToCsv } from '../lib/csvExport';
 export function MilestonesScreen() {
   const { profile } = useAuth();
   const { kpis } = useKpis();
-  const isManager = profile?.role === 'admin' || profile?.role === 'manager';
+  const isManager = profile?.role === 'owner' || profile?.role === 'manager';
   const [milestones, setMilestones] = useState<Milestone[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterKpi, setFilterKpi] = useState('');

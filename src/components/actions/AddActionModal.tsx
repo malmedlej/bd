@@ -200,7 +200,7 @@ export function AddActionModal({ kpis, profiles, onClose, onSaved, initial }: Ad
           </div>
 
           {/* Manager Note */}
-          {(profile?.role === 'admin' || profile?.role === 'manager') && (
+          {(profile?.role === 'owner' || profile?.role === 'manager') && (
             <div>
               <label className="label">Manager Note</label>
               <textarea className="input resize-none" rows={2} value={managerNote} onChange={(e) => setManagerNote(e.target.value)} placeholder="Instructions or context for the owner…" />

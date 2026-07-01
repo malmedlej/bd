@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { AuthProvider, useAuth } from './hooks/useAuth';
 import { AppLayout } from './components/layout/AppLayout';
 import { AuthScreen } from './screens/AuthScreen';
@@ -40,11 +40,6 @@ function AppContent() {
   const [refreshKey, setRefreshKey] = useState(0);
 
   const refresh = useCallback(() => setRefreshKey(k => k + 1), []);
-  const role = profile?.role;
-
-  useEffect(() => {
-    if (role === 'director') setScreen('director');
-  }, [role]);
 
   if (loading) {
     return (
@@ -87,18 +82,15 @@ function AppContent() {
     );
   }
 
-  const isDirector = profile.role === 'director';
-  const isAdmin = profile.role === 'admin';
-  const isManager = profile.role === 'admin' || profile.role === 'manager';
+  const isOwner = profile.role === 'owner';
+  const isManager = profile.role === 'owner' || profile.role === 'manager';
 
   const handleNavigate = (s: Screen) => {
-    if (isDirector && s !== 'director' && s !== 'kpis' && s !== 'alerts') return;
-    if (s === 'admin' && !isAdmin) return;
+    if (s === 'admin' && !isOwner) return;
     setScreen(s);
   };
 
   const handleUpdateAction = (a: WeeklyAction) => {
-    if (isDirector) return;
     setDetailAction(null);
     setUpdateAction(a);
   };

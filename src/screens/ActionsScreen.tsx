@@ -23,7 +23,7 @@ interface ActionsScreenProps {
 
 export function ActionsScreen({ onUpdateAction, onDetailAction }: ActionsScreenProps) {
   const { profile } = useAuth();
-  const isManager = profile?.role === 'admin' || profile?.role === 'manager';
+  const isManager = profile?.role === 'owner' || profile?.role === 'manager';
   const { actions, loading, error: loadError, refetch } = useActions({ all: isManager });
   const { kpis } = useKpis();
 

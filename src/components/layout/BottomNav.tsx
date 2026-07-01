@@ -1,4 +1,4 @@
-import { Home, CheckSquare, BarChart2, Users, LayoutDashboard, Bell, CalendarDays } from 'lucide-react';
+import { Home, CheckSquare, BarChart2, Users, Bell, CalendarDays } from 'lucide-react';
 import { Screen } from '../../types';
 import { useAuth } from '../../hooks/useAuth';
 import { useAlerts } from '../../hooks/useAlerts';
@@ -12,16 +12,9 @@ export function BottomNav({ current, onChange }: BottomNavProps) {
   const { profile } = useAuth();
   const { unreadCount } = useAlerts();
 
-  const isManager = profile?.role === 'admin' || profile?.role === 'manager';
-  const isDirector = profile?.role === 'director';
+  const isManager = profile?.role === 'owner' || profile?.role === 'manager';
 
-  const items = isDirector
-    ? [
-        { id: 'director' as Screen, label: 'Executive', icon: LayoutDashboard },
-        { id: 'kpis' as Screen,     label: 'KPIs',      icon: BarChart2 },
-        { id: 'alerts' as Screen,   label: 'Alerts',    icon: Bell, badge: unreadCount },
-      ]
-    : isManager
+  const items = isManager
     ? [
         { id: 'home' as Screen,     label: 'Home',      icon: Home },
         { id: 'actions' as Screen,  label: 'Actions',   icon: CheckSquare },

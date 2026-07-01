@@ -24,7 +24,7 @@ export function useActions(filter?: { ownerId?: string; all?: boolean }) {
 
       if (filter?.ownerId) {
         query = query.eq('owner_id', filter.ownerId);
-      } else if (!filter?.all && profile.role === 'employee') {
+      } else if (!filter?.all && profile.role === 'member') {
         query = query.eq('owner_id', profile.id);
       }
 

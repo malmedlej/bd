@@ -70,7 +70,7 @@ export function KPIsScreen() {
       </div>
 
       {/* Export */}
-      {(profile?.role === 'admin' || profile?.role === 'manager') && (
+      {(profile?.role === 'owner' || profile?.role === 'manager') && (
         <button
           onClick={() => exportKpisToCsv(kpis)}
           className="btn-secondary w-full flex items-center justify-center gap-2"

@@ -38,9 +38,8 @@ export function ActionDetailModal({ action, onClose, onUpdate }: ActionDetailMod
   useBodyScrollLock();
 
   const { profile } = useAuth();
-  const isManager = profile?.role === 'admin' || profile?.role === 'manager';
-  const isDirector = profile?.role === 'director';
-  const canUpdate = !isDirector && (isManager || action.owner_id === profile?.id);
+  const isManager = profile?.role === 'owner' || profile?.role === 'manager';
+  const canUpdate = isManager || action.owner_id === profile?.id;
 
   const [updates, setUpdates] = useState<(ActionUpdate & { updater?: Profile })[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(true);

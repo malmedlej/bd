@@ -6,7 +6,7 @@ import { useAuth } from '../hooks/useAuth';
 import { LoadingState } from '../components/ui/LoadingState';
 import { EmptyState } from '../components/ui/EmptyState';
 
-const ROLES: Role[] = ['admin', 'director', 'manager', 'employee'];
+const ROLES: Role[] = ['owner', 'manager', 'member'];
 
 function roleLabel(role: Role) {
   return role.charAt(0).toUpperCase() + role.slice(1);
@@ -20,7 +20,7 @@ export function AdminUsersScreen() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
-  const isAdmin = profile?.role === 'admin';
+  const isOwner = profile?.role === 'owner';
 
   const loadProfiles = async () => {
     setLoading(true);
@@ -49,11 +49,11 @@ export function AdminUsersScreen() {
   const stats = useMemo(() => ({
     total: profiles.length,
     active: profiles.filter((p) => p.is_active).length,
-    admins: profiles.filter((p) => p.role === 'admin').length,
+    owners: profiles.filter((p) => p.role === 'owner').length,
   }), [profiles]);
 
   const updateProfile = async (target: Profile, patch: Partial<Pick<Profile, 'role' | 'is_active'>>) => {
-    if (!isAdmin) return;
+    if (!isOwner) return;
 
     setSavingId(target.id);
     setError('');
@@ -77,15 +77,15 @@ export function AdminUsersScreen() {
     setSavingId(null);
   };
 
-  if (!isAdmin) {
+  if (!isOwner) {
     return (
       <div className="w-full px-4 py-5 lg:px-6">
         <div className="max-w-3xl rounded-2xl border border-amber-100 bg-amber-50 p-5">
           <div className="flex items-start gap-3">
             <AlertCircle className="mt-0.5 h-5 w-5 flex-shrink-0 text-amber-600" />
             <div>
-              <h1 className="font-bold text-amber-950">Admin access required</h1>
-              <p className="mt-1 text-sm text-amber-800">Only admins can manage user profiles and roles.</p>
+              <h1 className="font-bold text-amber-950">Owner access required</h1>
+              <p className="mt-1 text-sm text-amber-800">Only owners can manage user profiles and roles.</p>
             </div>
           </div>
         </div>
@@ -100,7 +100,7 @@ export function AdminUsersScreen() {
       <div className="mx-auto max-w-7xl space-y-5">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <div className="section-title">Admin</div>
+            <div className="section-title">Owner</div>
             <h1 className="mt-1 text-2xl font-bold tracking-tight text-slate-900">User Management</h1>
             <p className="mt-1 max-w-2xl text-sm text-slate-500">
               Manage existing BD Pulse profiles, roles, and active status. Auth user invitations must be handled outside the frontend.
@@ -134,8 +134,8 @@ export function AdminUsersScreen() {
             <div className="flex items-center gap-3">
               <Shield className="h-5 w-5 text-teal-600" />
               <div>
-                <div className="text-2xl font-black text-slate-900">{stats.admins}</div>
-                <div className="text-xs font-semibold text-slate-500">Admins</div>
+                <div className="text-2xl font-black text-slate-900">{stats.owners}</div>
+                <div className="text-xs font-semibold text-slate-500">Owners</div>
               </div>
             </div>
           </div>

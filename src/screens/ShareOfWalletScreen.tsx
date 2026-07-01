@@ -23,7 +23,7 @@ function formatCurrency(n: number): string {
 
 export function ShareOfWalletScreen() {
   const { profile } = useAuth();
-  const isManager = profile?.role === 'admin' || profile?.role === 'manager';
+  const isManager = profile?.role === 'owner' || profile?.role === 'manager';
   const [items, setItems] = useState<ShareOfWallet[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');

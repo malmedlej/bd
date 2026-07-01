@@ -12,7 +12,7 @@ interface SidebarProps {
   onChange: (s: Screen) => void;
 }
 
-const EMPLOYEE_ITEMS = [
+const MEMBER_ITEMS = [
   { id: 'home' as Screen,    label: 'My Week',     icon: Home },
   { id: 'actions' as Screen, label: 'My Actions',  icon: CheckSquare },
   { id: 'checkin' as Screen, label: 'Weekly Check-in', icon: CalendarDays },
@@ -28,17 +28,12 @@ const MANAGER_ITEMS = [
   { id: 'milestones' as Screen, label: 'Milestones',     icon: BookOpen },
   { id: 'wallet' as Screen,     label: 'Share of Wallet', icon: TrendingUp },
   { id: 'review' as Screen,     label: 'Monthly Review', icon: Activity },
-  { id: 'director' as Screen,   label: 'Director View',  icon: LayoutDashboard },
+  { id: 'director' as Screen,   label: 'Executive View', icon: LayoutDashboard },
 ];
 
-const ADMIN_ITEMS = [
+const OWNER_ITEMS = [
   ...MANAGER_ITEMS,
   { id: 'admin' as Screen, label: 'User Management', icon: Settings },
-];
-
-const DIRECTOR_ITEMS = [
-  { id: 'director' as Screen, label: 'Executive View', icon: LayoutDashboard },
-  { id: 'kpis' as Screen,     label: 'KPI Summary',    icon: BarChart2 },
 ];
 
 export function Sidebar({ current, onChange }: SidebarProps) {
@@ -47,13 +42,11 @@ export function Sidebar({ current, onChange }: SidebarProps) {
 
   if (!profile) return null;
 
-  const items = profile.role === 'director'
-    ? DIRECTOR_ITEMS
-    : profile.role === 'admin'
-    ? ADMIN_ITEMS
+  const items = profile.role === 'owner'
+    ? OWNER_ITEMS
     : profile.role === 'manager'
     ? MANAGER_ITEMS
-    : EMPLOYEE_ITEMS;
+    : MEMBER_ITEMS;
 
   return (
     <aside className="hidden lg:flex flex-col w-64 bg-slate-900 text-white h-screen sticky top-0 flex-shrink-0">

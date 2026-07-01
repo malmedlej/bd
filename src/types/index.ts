@@ -1,4 +1,4 @@
-export type Role = 'admin' | 'manager' | 'employee' | 'director';
+export type Role = 'owner' | 'manager' | 'member';
 
 export type ActionStatus = 'Not Started' | 'In Progress' | 'Completed' | 'Delayed' | 'Blocked' | 'Cancelled';
 export type ActionPriority = 'Low' | 'Medium' | 'High' | 'Critical';
