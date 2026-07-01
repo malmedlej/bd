@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
-import { AlertCircle, CheckCircle2, Shield, UserCog, Users } from 'lucide-react';
+import { AlertCircle, CheckCircle2, Shield, UserPlus, Users } from 'lucide-react';
 import { Profile, Role } from '../types';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
 import { LoadingState } from '../components/ui/LoadingState';
 import { EmptyState } from '../components/ui/EmptyState';
+import { CreateUserModal } from '../components/admin/CreateUserModal';
 
 const ROLES: Role[] = ['owner', 'manager', 'member'];
 
@@ -19,6 +20,7 @@ export function AdminUsersScreen() {
   const [savingId, setSavingId] = useState<string | null>(null);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [showCreate, setShowCreate] = useState(false);
 
   const isOwner = profile?.role === 'owner';
 
@@ -103,12 +105,18 @@ export function AdminUsersScreen() {
             <div className="section-title">Owner</div>
             <h1 className="mt-1 text-2xl font-bold tracking-tight text-slate-900">User Management</h1>
             <p className="mt-1 max-w-2xl text-sm text-slate-500">
-              Manage existing BD Pulse profiles, roles, and active status. Auth user invitations must be handled outside the frontend.
+              Manage BD Pulse profiles, roles, and active status, or create new users below.
             </p>
           </div>
-          <button onClick={loadProfiles} className="btn-secondary w-full lg:w-auto">
-            Refresh
-          </button>
+          <div className="flex gap-2">
+            <button onClick={loadProfiles} className="btn-secondary flex-1 lg:flex-none">
+              Refresh
+            </button>
+            <button onClick={() => setShowCreate(true)} className="btn-primary flex flex-1 items-center justify-center gap-1.5 lg:flex-none">
+              <UserPlus className="h-4 w-4" />
+              Create User
+            </button>
+          </div>
         </div>
 
         <div className="grid gap-3 sm:grid-cols-3">
@@ -148,18 +156,6 @@ export function AdminUsersScreen() {
             {error || success}
           </div>
         )}
-
-        <div className="rounded-2xl border border-blue-100 bg-blue-50 p-4">
-          <div className="flex items-start gap-3">
-            <UserCog className="mt-0.5 h-5 w-5 flex-shrink-0 text-blue-600" />
-            <div className="text-sm text-blue-950">
-              <div className="font-bold">Auth user creation</div>
-              <p className="mt-1 text-blue-800">
-                The frontend uses the Supabase anon key and cannot securely create Auth users. Invite or create users in Supabase Dashboard, then create or update the matching profile row here.
-              </p>
-            </div>
-          </div>
-        </div>
 
         {profiles.length === 0 ? (
           <EmptyState icon={Users} title="No profiles found" description="Create profiles linked to Supabase Auth users before assigning roles." />
@@ -214,6 +210,16 @@ export function AdminUsersScreen() {
           </div>
         )}
       </div>
+
+      {showCreate && (
+        <CreateUserModal
+          onClose={() => setShowCreate(false)}
+          onCreated={() => {
+            setSuccess('User created');
+            loadProfiles();
+          }}
+        />
+      )}
     </div>
   );
 }
