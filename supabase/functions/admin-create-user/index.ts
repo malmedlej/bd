@@ -7,6 +7,10 @@
 //
 // Only an authenticated caller whose public.profiles.role = 'owner' may
 // invoke this successfully.
+//
+// Env vars used (SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are reserved
+// names auto-injected by the Supabase platform — do not set them manually,
+// and do not add a SUPABASE_ANON_KEY secret; that prefix is reserved too).
 
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import { corsHeaders } from '../_shared/cors.ts';
@@ -31,10 +35,9 @@ Deno.serve(async (req: Request) => {
 
   const supabaseUrl = Deno.env.get('SUPABASE_URL');
   const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
-  const anonKey = Deno.env.get('SUPABASE_ANON_KEY');
 
-  if (!supabaseUrl || !serviceRoleKey || !anonKey) {
-    console.error('Missing SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY / SUPABASE_ANON_KEY env vars');
+  if (!supabaseUrl || !serviceRoleKey) {
+    console.error('Missing SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY env vars');
     return jsonResponse({ error: 'server_misconfigured' }, 500);
   }
 
@@ -42,22 +45,21 @@ Deno.serve(async (req: Request) => {
   if (!authHeader) {
     return jsonResponse({ error: 'not_authenticated' }, 401);
   }
-
-  // Client scoped to the caller's own JWT — used only to verify who is calling.
-  const callerClient = createClient(supabaseUrl, anonKey, {
-    global: { headers: { Authorization: authHeader } },
-    auth: { persistSession: false },
-  });
-
-  const { data: callerData, error: callerError } = await callerClient.auth.getUser();
-  if (callerError || !callerData?.user) {
+  const token = authHeader.replace('Bearer ', '').trim();
+  if (!token) {
     return jsonResponse({ error: 'not_authenticated' }, 401);
   }
 
-  // Service-role client — never exposed to the browser, used for privileged reads/writes only.
+  // Service-role client — never exposed to the browser. Used both to verify
+  // the caller's token (auth.getUser(token)) and for all privileged reads/writes.
   const adminClient = createClient(supabaseUrl, serviceRoleKey, {
     auth: { persistSession: false, autoRefreshToken: false },
   });
+
+  const { data: callerData, error: callerError } = await adminClient.auth.getUser(token);
+  if (callerError || !callerData?.user) {
+    return jsonResponse({ error: 'not_authenticated' }, 401);
+  }
 
   const { data: callerProfile, error: profileError } = await adminClient
     .from('profiles')
