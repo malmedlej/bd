@@ -33,7 +33,7 @@ const SCREEN_TITLES: Record<Screen, string> = {
 };
 
 function AppContent() {
-  const { user, profile, loading, signOut } = useAuth();
+  const { profile, loading } = useAuth();
   const [screen, setScreen] = useState<Screen>('home');
   const [updateAction, setUpdateAction] = useState<WeeklyAction | null>(null);
   const [detailAction, setDetailAction] = useState<WeeklyAction | null>(null);
@@ -52,34 +52,8 @@ function AppContent() {
     );
   }
 
-  if (!user) {
-    return <AuthScreen />;
-  }
-
   if (!profile) {
-    return (
-      <div
-        className="min-h-[100dvh] bg-slate-900 flex items-center justify-center p-4"
-        style={{
-          paddingTop: 'calc(1rem + env(safe-area-inset-top))',
-          paddingRight: 'calc(1rem + env(safe-area-inset-right))',
-          paddingBottom: 'calc(1rem + env(safe-area-inset-bottom))',
-          paddingLeft: 'calc(1rem + env(safe-area-inset-left))',
-        }}
-      >
-        <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl">
-          <div className="text-xs font-bold uppercase tracking-widest text-teal-600">BD Pulse</div>
-          <h1 className="mt-2 text-xl font-bold text-slate-900">Profile setup required</h1>
-          <p className="mt-2 text-sm text-slate-500">
-            Your sign-in worked, but no active BD Pulse profile is linked to {user.email ?? 'this account'}.
-          </p>
-          <p className="mt-2 text-sm text-slate-500">Please ask an administrator to create or activate your profile.</p>
-          <button onClick={signOut} className="btn-primary mt-5 w-full">
-            Return to Login
-          </button>
-        </div>
-      </div>
-    );
+    return <AuthScreen />;
   }
 
   const isOwner = profile.role === 'owner';

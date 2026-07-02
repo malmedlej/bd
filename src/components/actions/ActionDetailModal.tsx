@@ -51,7 +51,7 @@ export function ActionDetailModal({ action, onClose, onUpdate }: ActionDetailMod
       setHistoryError('');
       const { data, error } = await supabase
         .from('action_updates')
-        .select('*, updater:profiles!action_updates_updated_by_fkey(id, full_name, role)')
+        .select('*, updater:app_users!action_updates_updated_by_fkey(id, full_name, role)')
         .eq('action_id', action.id)
         .order('created_at', { ascending: false })
         .limit(20);

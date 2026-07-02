@@ -58,6 +58,26 @@
     -webkit-overflow-scrolling: touch;
   }
 
+  /* Bottom sheet that always fills the visible mobile viewport (so a
+     sticky footer sits at a fixed, reachable position instead of trailing
+     variable-height content), collapsing back to a capped auto-height
+     centered dialog on desktop. */
+  .modal-sheet-fill {
+    height: calc(100vh - env(safe-area-inset-top) - 12px);
+    height: calc(100dvh - env(safe-area-inset-top) - 12px);
+    max-height: calc(100vh - env(safe-area-inset-top) - 12px);
+    max-height: calc(100dvh - env(safe-area-inset-top) - 12px);
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  @screen lg {
+    .modal-sheet-fill {
+      height: auto;
+      max-height: 90vh;
+    }
+  }
+
   .modal-scroll {
     overscroll-behavior: contain;
     -webkit-overflow-scrolling: touch;

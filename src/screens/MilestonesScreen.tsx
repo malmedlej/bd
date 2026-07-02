@@ -24,7 +24,7 @@ export function MilestonesScreen() {
     setError('');
     const { data, error: err } = await supabase
       .from('milestones')
-      .select('*, kpi:kpis(id, kpi_name, color), owner:profiles!milestones_owner_id_fkey(id, full_name)')
+      .select('*, kpi:kpis(id, kpi_name, color), owner:app_users!milestones_owner_id_fkey(id, full_name)')
       .order('due_date', { ascending: true, nullsFirst: false });
     if (err) {
       console.error('Unable to load milestones', err);

@@ -17,7 +17,7 @@ export function useActions(filter?: { ownerId?: string; all?: boolean }) {
         .from('weekly_actions')
         .select(`
           *,
-          owner:profiles!weekly_actions_owner_id_fkey(id, full_name, email, role, avatar_url),
+          owner:app_users!weekly_actions_owner_id_fkey(id, full_name, username, role, avatar_url),
           kpi:kpis!weekly_actions_linked_kpi_id_fkey(id, kpi_name, color, status)
         `)
         .order('due_date', { ascending: true, nullsFirst: false });

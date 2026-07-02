@@ -4,17 +4,17 @@ import { Alert } from '../types';
 import { useAuth } from './useAuth';
 
 export function useAlerts() {
-  const { user } = useAuth();
+  const { profile } = useAuth();
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [error, setError] = useState<string | null>(null);
 
   const fetch = useCallback(async () => {
-    if (!user) return;
+    if (!profile) return;
     const { data, error: err } = await supabase
       .from('alerts')
       .select('*')
-      .eq('user_id', user.id)
+      .eq('user_id', profile.id)
       .order('created_at', { ascending: false })
       .limit(50);
     if (err) {
@@ -26,7 +26,7 @@ export function useAlerts() {
     setAlerts(items);
     setUnreadCount(items.filter((a) => !a.is_read).length);
     setError(null);
-  }, [user]);
+  }, [profile]);
 
   useEffect(() => { fetch(); }, [fetch]);
 
@@ -42,8 +42,8 @@ export function useAlerts() {
   };
 
   const markAllRead = async () => {
-    if (!user) return;
-    const { error: err } = await supabase.from('alerts').update({ is_read: true }).eq('user_id', user.id);
+    if (!profile) return;
+    const { error: err } = await supabase.from('alerts').update({ is_read: true }).eq('user_id', profile.id);
     if (err) {
       console.error('Unable to mark all alerts as read', err);
       setError('Unable to update alerts');

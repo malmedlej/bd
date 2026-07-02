@@ -12,7 +12,7 @@ export function useKpis() {
     setLoading(true);
     try {
       const [kpisRes, actionsRes, milestonesRes, sowRes] = await Promise.all([
-        supabase.from('kpis').select('*, owner:profiles!kpis_owner_id_fkey(id, full_name)').eq('is_active', true).order('display_order'),
+        supabase.from('kpis').select('*, owner:app_users!kpis_owner_id_fkey(id, full_name)').eq('is_active', true).order('display_order'),
         supabase.from('weekly_actions').select('id, linked_kpi_id, status, progress, due_date').neq('status', 'Cancelled'),
         supabase.from('milestones').select('id, kpi_id, completion, status'),
         supabase.from('share_of_wallet').select('id, spend_2025, spend_2026_ytd, status'),

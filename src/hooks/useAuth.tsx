@@ -1,93 +1,111 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
-import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 import { Profile } from '../types';
 
+const SESSION_KEY = 'bd_pulse_session';
+
 interface AuthContextValue {
-  user: User | null;
   profile: Profile | null;
-  session: Session | null;
   loading: boolean;
-  signIn: (email: string, password: string) => Promise<{ error: string | null }>;
-  signOut: () => Promise<void>;
+  signIn: (username: string, pin: string) => Promise<{ error: string | null }>;
+  signOut: () => void;
   refreshProfile: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
+function loadStoredUserId(): string | null {
+  try {
+    const raw = localStorage.getItem(SESSION_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as { id?: string };
+    return parsed?.id ?? null;
+  } catch {
+    return null;
+  }
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const fetchProfile = useCallback(async (userId: string) => {
+  const fetchProfile = useCallback(async (userId: string): Promise<Profile | null> => {
     const { data, error } = await supabase
-      .from('profiles')
+      .from('app_users')
       .select('*')
       .eq('id', userId)
+      .eq('is_active', true)
       .maybeSingle();
 
     if (error || !data) {
-      setProfile(null);
       return null;
+    }
+    return data as Profile;
+  }, []);
+
+  useEffect(() => {
+    const storedId = loadStoredUserId();
+    if (!storedId) {
+      setLoading(false);
+      return;
+    }
+    fetchProfile(storedId).then((restored) => {
+      if (restored) {
+        setProfile(restored);
+      } else {
+        localStorage.removeItem(SESSION_KEY);
+      }
+      setLoading(false);
+    });
+  }, [fetchProfile]);
+
+  const signIn = async (username: string, pin: string): Promise<{ error: string | null }> => {
+    const trimmedUsername = username.trim();
+    if (!trimmedUsername || !pin) {
+      return { error: 'Please enter your username and PIN.' };
+    }
+
+    const { data, error } = await supabase
+      .from('app_users')
+      .select('*')
+      .eq('username', trimmedUsername)
+      .eq('pin', pin)
+      .eq('is_active', true)
+      .maybeSingle();
+
+    if (error) {
+      console.error('Unable to sign in', error);
+      return { error: 'Unable to sign in. Please try again.' };
+    }
+    if (!data) {
+      return { error: 'Invalid username or PIN.' };
     }
 
     const nextProfile = data as Profile;
     setProfile(nextProfile);
-    return nextProfile;
-  }, []);
-
-  const refreshProfile = useCallback(async () => {
-    if (user) await fetchProfile(user.id);
-  }, [user, fetchProfile]);
-
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        fetchProfile(session.user.id).finally(() => setLoading(false));
-      } else {
-        setLoading(false);
-      }
-    });
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      (async () => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        if (session?.user) {
-          await fetchProfile(session.user.id);
-        } else {
-          setProfile(null);
-        }
-        if (event === 'SIGNED_OUT') setLoading(false);
-      })();
-    });
-
-    return () => subscription.unsubscribe();
-  }, [fetchProfile]);
-
-  const signIn = async (email: string, password: string): Promise<{ error: string | null }> => {
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) {
-      console.error('Unable to sign in', error);
-      return { error: 'Unable to sign in. Check your email and password.' };
-    }
-    if (data.user) await fetchProfile(data.user.id);
+    localStorage.setItem(SESSION_KEY, JSON.stringify({ id: nextProfile.id }));
     return { error: null };
   };
 
-  const signOut = async () => {
-    await supabase.auth.signOut();
+  const signOut = () => {
     setProfile(null);
-    setUser(null);
-    setSession(null);
+    localStorage.removeItem(SESSION_KEY);
   };
 
+  const refreshProfile = useCallback(async () => {
+    if (!profile) return;
+    const refreshed = await fetchProfile(profile.id);
+    if (refreshed) {
+      setProfile(refreshed);
+    } else {
+      // Account was deactivated or removed — end the session.
+      setProfile(null);
+      localStorage.removeItem(SESSION_KEY);
+    }
+  }, [profile, fetchProfile]);
+
   return (
-    <AuthContext.Provider value={{ user, profile, session, loading, signIn, signOut, refreshProfile }}>
+    <AuthContext.Provider value={{ profile, loading, signIn, signOut, refreshProfile }}>
       {children}
     </AuthContext.Provider>
   );

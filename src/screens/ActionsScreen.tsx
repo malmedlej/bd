@@ -35,7 +35,7 @@ export function ActionsScreen({ onUpdateAction, onDetailAction }: ActionsScreenP
 
   const loadProfiles = async () => {
     setActionError('');
-    const { data, error } = await supabase.from('profiles').select('*').eq('is_active', true);
+    const { data, error } = await supabase.from('app_users').select('*').eq('is_active', true);
     if (error) {
       console.error('Unable to load profiles', error);
       setActionError('Unable to load profiles');

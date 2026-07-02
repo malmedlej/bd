@@ -4,18 +4,18 @@ import { Zap, Eye, EyeOff, AlertCircle } from 'lucide-react';
 
 export function AuthScreen() {
   const { signIn } = useAuth();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
+  const [username, setUsername] = useState('');
+  const [pin, setPin] = useState('');
+  const [showPin, setShowPin] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !password) { setError('Please enter your email and password.'); return; }
+    if (!username || !pin) { setError('Please enter your username and PIN.'); return; }
     setLoading(true);
     setError('');
-    const { error: err } = await signIn(email, password);
+    const { error: err } = await signIn(username, pin);
     if (err) setError(err);
     setLoading(false);
   };
@@ -45,35 +45,35 @@ export function AuthScreen() {
           <h2 className="font-semibold text-slate-900 mb-5">Sign in to your account</h2>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="label">Email address</label>
+              <label className="label">Username</label>
               <input
                 className="input"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@company.com"
-                autoComplete="email"
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="e.g. medlej"
+                autoComplete="username"
                 autoCapitalize="none"
               />
             </div>
             <div>
-              <label className="label">Password</label>
+              <label className="label">PIN / Password</label>
               <div className="relative">
                 <input
                   className="input pr-10"
-                  type={showPassword ? 'text' : 'password'}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Your password"
+                  type={showPin ? 'text' : 'password'}
+                  value={pin}
+                  onChange={(e) => setPin(e.target.value)}
+                  placeholder="Your PIN"
                   autoComplete="current-password"
                 />
                 <button
                   type="button"
                   className="absolute right-1 top-1/2 flex min-h-11 min-w-11 -translate-y-1/2 items-center justify-center text-slate-400 hover:text-slate-600"
-                  onClick={() => setShowPassword(!showPassword)}
-                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  onClick={() => setShowPin(!showPin)}
+                  aria-label={showPin ? 'Hide PIN' : 'Show PIN'}
                 >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  {showPin ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
             </div>

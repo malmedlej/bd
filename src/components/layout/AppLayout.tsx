@@ -16,12 +16,12 @@ interface AppLayoutProps {
 }
 
 export function AppLayout({ children, current, onChange, title, subtitle, headerRight }: AppLayoutProps) {
-  const { user, profile, signOut } = useAuth();
+  const { profile, signOut } = useAuth();
   const { unreadCount } = useAlerts();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  const initials = (profile?.full_name || user?.email || 'BD')
+  const initials = (profile?.full_name || profile?.username || 'BD')
     .split(/[ @.]+/)
     .filter(Boolean)
     .map((n) => n[0])
@@ -49,9 +49,9 @@ export function AppLayout({ children, current, onChange, title, subtitle, header
     };
   }, [menuOpen]);
 
-  const handleSignOut = async () => {
+  const handleSignOut = () => {
     setMenuOpen(false);
-    await signOut();
+    signOut();
   };
 
   return (
@@ -126,7 +126,7 @@ export function AppLayout({ children, current, onChange, title, subtitle, header
                   >
                     <div className="px-3 py-2">
                       <div className="text-sm font-bold text-slate-900 truncate">{profile.full_name || 'BD Pulse User'}</div>
-                      <div className="text-xs text-slate-500 truncate mt-0.5">{profile.email || user?.email || 'Email unavailable'}</div>
+                      <div className="text-xs text-slate-500 truncate mt-0.5">{profile.username ? `@${profile.username}` : 'Username unavailable'}</div>
                       <div className="mt-2 inline-flex rounded-full bg-teal-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest text-teal-700">
                         {profile.role || 'User'}
                       </div>

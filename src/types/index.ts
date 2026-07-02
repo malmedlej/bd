@@ -11,7 +11,8 @@ export type ActivityStatus = 'Planned' | 'In Progress' | 'Completed' | 'Cancelle
 export interface Profile {
   id: string;
   full_name: string;
-  email: string;
+  username: string;
+  pin?: string;
   role: Role;
   avatar_url?: string | null;
   department?: string;

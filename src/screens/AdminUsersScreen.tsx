@@ -13,6 +13,36 @@ function roleLabel(role: Role) {
   return role.charAt(0).toUpperCase() + role.slice(1);
 }
 
+interface EditableFieldProps {
+  value: string;
+  disabled?: boolean;
+  placeholder?: string;
+  onCommit: (value: string) => void;
+}
+
+// Local-state text input that only writes back on blur (once the value
+// actually changed), so typing a department/PIN doesn't fire a request per
+// keystroke.
+function EditableField({ value, disabled, placeholder, onCommit }: EditableFieldProps) {
+  const [draft, setDraft] = useState(value);
+
+  useEffect(() => setDraft(value), [value]);
+
+  return (
+    <input
+      className="input-sm min-h-11"
+      value={draft}
+      disabled={disabled}
+      placeholder={placeholder}
+      onChange={(event) => setDraft(event.target.value)}
+      onBlur={() => {
+        if (draft.trim() && draft !== value) onCommit(draft.trim());
+        else setDraft(value);
+      }}
+    />
+  );
+}
+
 export function AdminUsersScreen() {
   const { profile, refreshProfile } = useAuth();
   const [profiles, setProfiles] = useState<Profile[]>([]);
@@ -28,7 +58,7 @@ export function AdminUsersScreen() {
     setLoading(true);
     setError('');
     const { data, error: err } = await supabase
-      .from('profiles')
+      .from('app_users')
       .select('*')
       .order('full_name', { ascending: true });
 
@@ -54,7 +84,7 @@ export function AdminUsersScreen() {
     owners: profiles.filter((p) => p.role === 'owner').length,
   }), [profiles]);
 
-  const updateProfile = async (target: Profile, patch: Partial<Pick<Profile, 'role' | 'is_active'>>) => {
+  const updateProfile = async (target: Profile, patch: Partial<Pick<Profile, 'role' | 'is_active' | 'department' | 'pin'>>) => {
     if (!isOwner) return;
 
     setSavingId(target.id);
@@ -62,7 +92,7 @@ export function AdminUsersScreen() {
     setSuccess('');
 
     const { error: err } = await supabase
-      .from('profiles')
+      .from('app_users')
       .update({ ...patch, updated_at: new Date().toISOString() })
       .eq('id', target.id);
 
@@ -105,7 +135,7 @@ export function AdminUsersScreen() {
             <div className="section-title">Owner</div>
             <h1 className="mt-1 text-2xl font-bold tracking-tight text-slate-900">User Management</h1>
             <p className="mt-1 max-w-2xl text-sm text-slate-500">
-              Manage BD Pulse profiles, roles, and active status, or create new users below.
+              Manage BD Pulse users, roles, and active status, or create new users below.
             </p>
           </div>
           <div className="flex gap-2">
@@ -158,22 +188,23 @@ export function AdminUsersScreen() {
         )}
 
         {profiles.length === 0 ? (
-          <EmptyState icon={Users} title="No profiles found" description="Create profiles linked to Supabase Auth users before assigning roles." />
+          <EmptyState icon={Users} title="No users found" description="Create your first user with the button above." />
         ) : (
           <div className="card overflow-hidden">
-            <div className="hidden grid-cols-[minmax(220px,1fr)_180px_160px_120px] gap-3 border-b border-slate-100 px-4 py-3 text-[11px] font-bold uppercase tracking-widest text-slate-400 lg:grid">
+            <div className="hidden grid-cols-[minmax(180px,1fr)_120px_150px_110px_120px_100px] gap-3 border-b border-slate-100 px-4 py-3 text-[11px] font-bold uppercase tracking-widest text-slate-400 lg:grid">
               <div>User</div>
               <div>Role</div>
+              <div>Department</div>
+              <div>PIN</div>
               <div>Status</div>
               <div className="text-right">Updated</div>
             </div>
             <div className="divide-y divide-slate-100">
               {profiles.map((p) => (
-                <div key={p.id} className="grid gap-3 px-4 py-4 lg:grid-cols-[minmax(220px,1fr)_180px_160px_120px] lg:items-center">
+                <div key={p.id} className="grid gap-3 px-4 py-4 lg:grid-cols-[minmax(180px,1fr)_120px_150px_110px_120px_100px] lg:items-center">
                   <div className="min-w-0">
                     <div className="font-semibold text-slate-900">{p.full_name || 'Unnamed user'}</div>
-                    <div className="truncate text-xs text-slate-500">{p.email || 'No email on profile'}</div>
-                    <div className="mt-1 truncate font-mono text-[10px] text-slate-400">{p.id}</div>
+                    <div className="truncate text-xs text-slate-500">@{p.username}</div>
                   </div>
 
                   <label className="block">
@@ -188,6 +219,26 @@ export function AdminUsersScreen() {
                         <option key={role} value={role}>{roleLabel(role)}</option>
                       ))}
                     </select>
+                  </label>
+
+                  <label className="block">
+                    <span className="label lg:hidden">Department</span>
+                    <EditableField
+                      value={p.department ?? ''}
+                      disabled={savingId === p.id}
+                      placeholder="Department"
+                      onCommit={(department) => updateProfile(p, { department })}
+                    />
+                  </label>
+
+                  <label className="block">
+                    <span className="label lg:hidden">PIN</span>
+                    <EditableField
+                      value={p.pin ?? ''}
+                      disabled={savingId === p.id}
+                      placeholder="PIN"
+                      onCommit={(pin) => updateProfile(p, { pin })}
+                    />
                   </label>
 
                   <label className="flex min-h-11 items-center gap-3 rounded-xl bg-slate-50 px-3">

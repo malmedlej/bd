@@ -15,45 +15,15 @@ function roleLabel(role: Role) {
   return role.charAt(0).toUpperCase() + role.slice(1);
 }
 
-const ERROR_MESSAGES: Record<string, string> = {
-  not_owner: 'Only owners can create users.',
-  not_authenticated: 'Your session has expired. Please sign in again.',
-  email_exists: 'A user with this email already exists.',
-  full_name_required: 'Full name is required.',
-  email_required: 'Email is required.',
-  password_invalid: 'Temporary password must be at least 8 characters.',
-  role_invalid: 'Role must be owner, manager, or member.',
-  server_misconfigured: 'Server is misconfigured. Contact an administrator.',
-  profile_upsert_failed: 'User was created but the profile could not be saved. Contact an administrator.',
-  invalid_json: 'Unable to create user (bad request).',
-  method_not_allowed: 'Unable to create user (bad request).',
-};
-
-// supabase-js wraps non-2xx Edge Function responses in a generic
-// FunctionsHttpError whose .message is just "Edge Function returned a
-// non-2xx status code" — the real { error: "..." } body only lives on
-// error.context (the raw Response), so it has to be parsed out manually.
-async function extractEdgeFunctionError(fnError: unknown): Promise<string> {
-  if (fnError && typeof fnError === 'object' && 'context' in fnError) {
-    const context = (fnError as { context?: unknown }).context;
-    if (context instanceof Response) {
-      try {
-        const body = await context.clone().json();
-        if (body && typeof body.error === 'string') return body.error;
-      } catch {
-        // Response body wasn't JSON — fall through to the generic message.
-      }
-    }
-  }
-  return fnError instanceof Error ? fnError.message : 'Unable to create user';
-}
+// Postgres unique_violation
+const UNIQUE_VIOLATION = '23505';
 
 export function CreateUserModal({ onClose, onCreated }: CreateUserModalProps) {
   useBodyScrollLock();
 
   const [fullName, setFullName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [username, setUsername] = useState('');
+  const [pin, setPin] = useState('');
   const [role, setRole] = useState<Role>('member');
   const [department, setDepartment] = useState('Business Development');
   const [isActive, setIsActive] = useState(true);
@@ -62,8 +32,8 @@ export function CreateUserModal({ onClose, onCreated }: CreateUserModalProps) {
 
   const validate = (): string | null => {
     if (!fullName.trim()) return 'Full name is required.';
-    if (!email.trim()) return 'Email is required.';
-    if (!password || password.length < 8) return 'Temporary password must be at least 8 characters.';
+    if (!username.trim()) return 'Username is required.';
+    if (!pin || pin.length < 4) return 'PIN / password must be at least 4 characters.';
     if (!ROLES.includes(role)) return 'Role is required.';
     return null;
   };
@@ -76,26 +46,30 @@ export function CreateUserModal({ onClose, onCreated }: CreateUserModalProps) {
     setError('');
 
     try {
-      const { data, error: fnError } = await supabase.functions.invoke('admin-create-user', {
-        body: {
-          full_name: fullName.trim(),
-          email: email.trim(),
-          password,
-          role,
-          department: department.trim() || 'Business Development',
-          is_active: isActive,
-        },
+      // This is a simple internal tool: users are created directly as rows
+      // in app_users using the public anon key -- no Supabase Auth account,
+      // no Edge Function, no service role key involved.
+      const { error: insertError } = await supabase.from('app_users').insert({
+        full_name: fullName.trim(),
+        username: username.trim(),
+        pin,
+        role,
+        department: department.trim() || 'Business Development',
+        is_active: isActive,
       });
 
-      if (fnError) throw new Error(await extractEdgeFunctionError(fnError));
-      if (data?.error) throw new Error(data.error);
+      if (insertError) {
+        if (insertError.code === UNIQUE_VIOLATION) {
+          throw new Error('A user with this username already exists.');
+        }
+        throw new Error('Unable to create user.');
+      }
 
       onCreated();
       onClose();
     } catch (e: unknown) {
       console.error('Unable to create user', e);
-      const code = e instanceof Error ? e.message : 'unable_to_create_user';
-      setError(ERROR_MESSAGES[code] ?? code);
+      setError(e instanceof Error ? e.message : 'Unable to create user');
     } finally {
       setSaving(false);
     }
@@ -104,13 +78,7 @@ export function CreateUserModal({ onClose, onCreated }: CreateUserModalProps) {
   return (
     <div className="fixed inset-0 z-[9999] flex items-end justify-center overflow-hidden lg:items-center">
       <div className="absolute inset-0 bg-black/50 fade-in" onClick={onClose} />
-      <div
-        className="modal-sheet relative bg-white w-full lg:max-w-lg lg:rounded-2xl rounded-t-2xl slide-up flex flex-col overflow-hidden"
-        style={{
-          maxHeight: 'calc(100dvh - env(safe-area-inset-top) - 12px)',
-          height: 'auto',
-        }}
-      >
+      <div className="modal-sheet-fill relative bg-white w-full lg:max-w-lg lg:rounded-2xl rounded-t-2xl slide-up flex flex-col overflow-hidden">
         <div className="flex-shrink-0 flex justify-center pt-3 pb-1 lg:hidden">
           <div className="w-10 h-1 bg-slate-200 rounded-full" />
         </div>
@@ -122,20 +90,26 @@ export function CreateUserModal({ onClose, onCreated }: CreateUserModalProps) {
           </button>
         </div>
 
-        <div className="modal-scroll flex-1 min-h-0 overflow-y-auto px-5 pt-4 pb-8 space-y-4">
+        <div className="modal-scroll flex-1 min-h-0 overflow-y-auto px-5 pt-4 pb-6 space-y-4">
           <div>
             <label className="label">Full Name <span className="text-red-400">*</span></label>
             <input className="input" value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="Jane Doe" />
           </div>
 
           <div>
-            <label className="label">Email <span className="text-red-400">*</span></label>
-            <input className="input" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="jane@company.com" />
+            <label className="label">Username <span className="text-red-400">*</span></label>
+            <input
+              className="input"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder="e.g. jane"
+              autoCapitalize="none"
+            />
           </div>
 
           <div>
-            <label className="label">Temporary Password <span className="text-red-400">*</span></label>
-            <input className="input" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Minimum 8 characters" />
+            <label className="label">PIN / Password <span className="text-red-400">*</span></label>
+            <input className="input" type="text" value={pin} onChange={(e) => setPin(e.target.value)} placeholder="e.g. 1234" />
           </div>
 
           <div>
@@ -168,7 +142,7 @@ export function CreateUserModal({ onClose, onCreated }: CreateUserModalProps) {
         </div>
 
         <div
-          className="flex-shrink-0 sticky bottom-0 bg-white px-5 py-4 border-t border-slate-100 flex gap-3"
+          className="flex-shrink-0 sticky bottom-0 z-10 bg-white px-5 py-4 border-t border-slate-100 flex gap-3"
           style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 16px)' }}
         >
           <button onClick={onClose} className="btn-secondary" disabled={saving}>Cancel</button>

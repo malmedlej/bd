@@ -33,7 +33,7 @@ export function ShareOfWalletScreen() {
       setError('');
       const { data, error: err } = await supabase
         .from('share_of_wallet')
-        .select('*, owner:profiles!share_of_wallet_owner_id_fkey(id, full_name)')
+        .select('*, owner:app_users!share_of_wallet_owner_id_fkey(id, full_name)')
         .order('spend_2026_ytd', { ascending: false });
       if (err) {
         console.error('Unable to load share of wallet', err);
